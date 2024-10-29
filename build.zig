@@ -276,6 +276,12 @@ pub fn build(b: *std.Build) !void {
             .path = "examples/text/text_format_text.zig",
             .desc = "Renders variables as text",
         },
+        .{
+            .name = "textures_image_loading",
+            .path = "examples/textures/textures_image_loading.zig",
+            .desc = "Image loading and texture creation",
+        },
+
         // .{
         //     .name = "models_loading",
         //     .path = "examples/models/models_loading.zig",
