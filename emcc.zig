@@ -46,12 +46,17 @@ pub fn compileForEmscripten(
     // it messes with the build system itself.
 
     // The project is built as a library and linked later.
-    return b.addStaticLibrary(.{
+    const lib = b.addStaticLibrary(.{
         .name = name,
         .root_source_file = b.path(root_source_file),
         .target = target,
         .optimize = optimize,
     });
+
+    const emscripten_headers = std.fs.path.join(b.allocator, &.{ b.sysroot.?, "cache", "sysroot", "include" }) catch unreachable;
+    defer b.allocator.free(emscripten_headers);
+    lib.addIncludePath(.{ .cwd_relative = emscripten_headers });
+    return lib;
 }
 
 // Links a set of items together using emscripten.
