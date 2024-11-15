@@ -39,7 +39,7 @@ pub fn compileForEmscripten(
     root_source_file: []const u8,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.Mode,
-) *std.Build.Step.Compile {
+) !*std.Build.Step.Compile {
     // TODO: It might be a good idea to create a custom compile step, that does
     // both the compile to static library and the link with emcc by overidding
     // the make function of the step. However it might also be a bad idea since
@@ -53,7 +53,7 @@ pub fn compileForEmscripten(
         .optimize = optimize,
     });
 
-    const emscripten_headers = std.fs.path.join(b.allocator, &.{ b.sysroot.?, "cache", "sysroot", "include" }) catch unreachable;
+    const emscripten_headers = try std.fs.path.join(b.allocator, &.{ b.sysroot.?, "cache", "sysroot", "include" });
     defer b.allocator.free(emscripten_headers);
     lib.addIncludePath(.{ .cwd_relative = emscripten_headers });
     return lib;

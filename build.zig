@@ -318,7 +318,7 @@ pub fn build(b: *std.Build) !void {
 
     for (examples) |ex| {
         if (target.query.os_tag == .emscripten) {
-            const exe_lib = emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
+            const exe_lib = try emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
             exe_lib.root_module.addImport("raylib", raylib);
             exe_lib.root_module.addImport("raygui", raygui);
             const raylib_lib = getRaylib(b, target, optimize, options);
