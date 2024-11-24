@@ -1829,7 +1829,7 @@ pub const ShaderLocationIndex = enum(c_int) {
     shader_loc_map_brdf = 25,
     shader_loc_vertex_boneids = 26,
     shader_loc_vertex_boneweights = 27,
-    shader_loc_bone_matrices = 28
+    shader_loc_bone_matrices = 28,
 };
 
 pub const ShaderUniformDataType = enum(c_int) {
@@ -1900,7 +1900,6 @@ pub const CubemapLayout = enum(c_int) {
     cubemap_layout_line_horizontal = 2,
     cubemap_layout_cross_three_by_four = 3,
     cubemap_layout_cross_four_by_three = 4,
-    cubemap_layout_panorama = 5,
 };
 
 pub const FontType = enum(c_int) {
@@ -1963,7 +1962,7 @@ pub const AudioCallback = ?*const fn (?*anyopaque, c_uint) callconv(.C) void;
 pub const RAYLIB_VERSION_MAJOR = @as(i32, 5);
 pub const RAYLIB_VERSION_MINOR = @as(i32, 5);
 pub const RAYLIB_VERSION_PATCH = @as(i32, 0);
-pub const RAYLIB_VERSION = "5.5-dev";
+pub const RAYLIB_VERSION = "5.5";
 
 pub const MAX_TOUCH_POINTS = 10;
 pub const MAX_MATERIAL_MAPS = 12;
@@ -2062,6 +2061,20 @@ pub fn decodeDataBase64(data: []const u8) []u8 {
     res.ptr = cdef.DecodeDataBase64(@as([*c]const u8, @ptrCast(data)), @as([*c]c_int, @ptrCast(&outputSize)));
     res.len = @as(usize, @intCast(outputSize));
     return res;
+}
+
+pub fn computeCRC32(data: []u8) u32 {
+    return cdef.ComputeCRC32(data.ptr, data.len);
+}
+
+pub fn computeMD5(data: []u8) [4]u32 {
+    const res: [*]c_int = cdef.ComputeMD5(data.ptr, data.len);
+    return res[0..4].*;
+}
+
+pub fn computeSHA1(data: []u8) [5]u32 {
+    const res: [*]c_int = cdef.ComputeSHA1(data.ptr, data.len);
+    return res[0..5].*;
 }
 
 pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) Image {

@@ -115,7 +115,7 @@ pub extern "c" fn rlDrawVertexArrayInstanced(offset: c_int, count: c_int, instan
 pub extern "c" fn rlDrawVertexArrayElementsInstanced(offset: c_int, count: c_int, buffer: ?*const anyopaque, instances: c_int) void;
 pub extern "c" fn rlLoadTexture(data: ?*const anyopaque, width: c_int, height: c_int, format: c_int, mipmapCount: c_int) c_uint;
 pub extern "c" fn rlLoadTextureDepth(width: c_int, height: c_int, useRenderBuffer: bool) c_uint;
-pub extern "c" fn rlLoadTextureCubemap(data: ?*const anyopaque, size: c_int, format: c_int) c_uint;
+pub extern "c" fn rlLoadTextureCubemap(data: ?*const anyopaque, size: c_int, format: c_int, mipmapCount: c_int) c_uint;
 pub extern "c" fn rlUpdateTexture(id: c_uint, offsetX: c_int, offsetY: c_int, width: c_int, height: c_int, format: c_int, data: *const anyopaque) void;
 pub extern "c" fn rlGetGlTextureFormats(format: c_int, glInternalFormat: [*c]c_uint, glFormat: [*c]c_uint, glType: [*c]c_uint) void;
 pub extern "c" fn rlGetPixelFormatName(format: c_uint) [*c]const u8;

@@ -1829,7 +1829,7 @@ pub const ShaderLocationIndex = enum(c_int) {
     shader_loc_map_brdf = 25,
     shader_loc_vertex_boneids = 26,
     shader_loc_vertex_boneweights = 27,
-    shader_loc_bone_matrices = 28
+    shader_loc_bone_matrices = 28,
 };
 
 pub const ShaderUniformDataType = enum(c_int) {
@@ -1900,7 +1900,6 @@ pub const CubemapLayout = enum(c_int) {
     cubemap_layout_line_horizontal = 2,
     cubemap_layout_cross_three_by_four = 3,
     cubemap_layout_cross_four_by_three = 4,
-    cubemap_layout_panorama = 5,
 };
 
 pub const FontType = enum(c_int) {
@@ -1963,7 +1962,7 @@ pub const AudioCallback = ?*const fn (?*anyopaque, c_uint) callconv(.C) void;
 pub const RAYLIB_VERSION_MAJOR = @as(i32, 5);
 pub const RAYLIB_VERSION_MINOR = @as(i32, 5);
 pub const RAYLIB_VERSION_PATCH = @as(i32, 0);
-pub const RAYLIB_VERSION = "5.5-dev";
+pub const RAYLIB_VERSION = "5.5";
 
 pub const MAX_TOUCH_POINTS = 10;
 pub const MAX_MATERIAL_MAPS = 12;
@@ -2062,6 +2061,20 @@ pub fn decodeDataBase64(data: []const u8) []u8 {
     res.ptr = cdef.DecodeDataBase64(@as([*c]const u8, @ptrCast(data)), @as([*c]c_int, @ptrCast(&outputSize)));
     res.len = @as(usize, @intCast(outputSize));
     return res;
+}
+
+pub fn computeCRC32(data: []u8) u32 {
+    return cdef.ComputeCRC32(data.ptr, data.len);
+}
+
+pub fn computeMD5(data: []u8) [4]u32 {
+    const res: [*]c_int = cdef.ComputeMD5(data.ptr, data.len);
+    return res[0..4].*;
+}
+
+pub fn computeSHA1(data: []u8) [5]u32 {
+    const res: [*]c_int = cdef.ComputeSHA1(data.ptr, data.len);
+    return res[0..5].*;
 }
 
 pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) Image {
@@ -2360,22 +2373,22 @@ pub fn isWindowFullscreen() bool {
     return cdef.IsWindowFullscreen();
 }
 
-/// Check if window is currently hidden (only PLATFORM_DESKTOP)
+/// Check if window is currently hidden
 pub fn isWindowHidden() bool {
     return cdef.IsWindowHidden();
 }
 
-/// Check if window is currently minimized (only PLATFORM_DESKTOP)
+/// Check if window is currently minimized
 pub fn isWindowMinimized() bool {
     return cdef.IsWindowMinimized();
 }
 
-/// Check if window is currently maximized (only PLATFORM_DESKTOP)
+/// Check if window is currently maximized
 pub fn isWindowMaximized() bool {
     return cdef.IsWindowMaximized();
 }
 
-/// Check if window is currently focused (only PLATFORM_DESKTOP)
+/// Check if window is currently focused
 pub fn isWindowFocused() bool {
     return cdef.IsWindowFocused();
 }
@@ -2390,7 +2403,7 @@ pub fn isWindowState(flag: ConfigFlags) bool {
     return cdef.IsWindowState(flag);
 }
 
-/// Set window configuration state using flags (only PLATFORM_DESKTOP)
+/// Set window configuration state using flags
 pub fn setWindowState(flags: ConfigFlags) void {
     cdef.SetWindowState(flags);
 }
@@ -2400,42 +2413,42 @@ pub fn clearWindowState(flags: ConfigFlags) void {
     cdef.ClearWindowState(flags);
 }
 
-/// Toggle window state: fullscreen/windowed [resizes monitor to match window resolution] (only PLATFORM_DESKTOP)
+/// Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
 pub fn toggleFullscreen() void {
     cdef.ToggleFullscreen();
 }
 
-/// Toggle window state: borderless windowed [resizes window to match monitor resolution] (only PLATFORM_DESKTOP)
+/// Toggle window state: borderless windowed, resizes window to match monitor resolution
 pub fn toggleBorderlessWindowed() void {
     cdef.ToggleBorderlessWindowed();
 }
 
-/// Set window state: maximized, if resizable (only PLATFORM_DESKTOP)
+/// Set window state: maximized, if resizable
 pub fn maximizeWindow() void {
     cdef.MaximizeWindow();
 }
 
-/// Set window state: minimized, if resizable (only PLATFORM_DESKTOP)
+/// Set window state: minimized, if resizable
 pub fn minimizeWindow() void {
     cdef.MinimizeWindow();
 }
 
-/// Set window state: not minimized/maximized (only PLATFORM_DESKTOP)
+/// Set window state: not minimized/maximized
 pub fn restoreWindow() void {
     cdef.RestoreWindow();
 }
 
-/// Set icon for window (single image, RGBA 32bit, only PLATFORM_DESKTOP)
+/// Set icon for window (single image, RGBA 32bit)
 pub fn setWindowIcon(image: Image) void {
     cdef.SetWindowIcon(image);
 }
 
-/// Set title for window (only PLATFORM_DESKTOP and PLATFORM_WEB)
+/// Set title for window
 pub fn setWindowTitle(title: [*:0]const u8) void {
     cdef.SetWindowTitle(@as([*c]const u8, @ptrCast(title)));
 }
 
-/// Set window position on screen (only PLATFORM_DESKTOP)
+/// Set window position on screen
 pub fn setWindowPosition(x: i32, y: i32) void {
     cdef.SetWindowPosition(@as(c_int, x), @as(c_int, y));
 }
@@ -2460,12 +2473,12 @@ pub fn setWindowSize(width: i32, height: i32) void {
     cdef.SetWindowSize(@as(c_int, width), @as(c_int, height));
 }
 
-/// Set window opacity [0.0f..1.0f] (only PLATFORM_DESKTOP)
+/// Set window opacity [0.0f..1.0f]
 pub fn setWindowOpacity(opacity: f32) void {
     cdef.SetWindowOpacity(opacity);
 }
 
-/// Set window focused (only PLATFORM_DESKTOP)
+/// Set window focused
 pub fn setWindowFocused() void {
     cdef.SetWindowFocused();
 }
@@ -2500,7 +2513,7 @@ pub fn getMonitorCount() i32 {
     return @as(i32, cdef.GetMonitorCount());
 }
 
-/// Get current connected monitor
+/// Get current monitor where window is placed
 pub fn getCurrentMonitor() i32 {
     return @as(i32, cdef.GetCurrentMonitor());
 }
@@ -2558,6 +2571,11 @@ pub fn setClipboardText(text: [*:0]const u8) void {
 /// Get clipboard text content
 pub fn getClipboardText() [*:0]const u8 {
     return std.mem.span(cdef.GetClipboardText());
+}
+
+/// Get clipboard image content
+pub fn getClipboardImage() Image {
+    return cdef.GetClipboardImage();
 }
 
 /// Enable waiting for events on EndDrawing(), no automatic event polling
@@ -2695,9 +2713,9 @@ pub fn unloadVrStereoConfig(config: VrStereoConfig) void {
     cdef.UnloadVrStereoConfig(config);
 }
 
-/// Check if a shader is ready
-pub fn isShaderReady(shader: Shader) bool {
-    return cdef.IsShaderReady(shader);
+/// Check if a shader is valid (loaded on GPU)
+pub fn isShaderValid(shader: Shader) bool {
+    return cdef.IsShaderValid(shader);
 }
 
 /// Get shader uniform location
@@ -3060,7 +3078,7 @@ pub fn isKeyPressed(key: KeyboardKey) bool {
     return cdef.IsKeyPressed(key);
 }
 
-/// Check if a key has been pressed again (Only PLATFORM_DESKTOP)
+/// Check if a key has been pressed again
 pub fn isKeyPressedRepeat(key: KeyboardKey) bool {
     return cdef.IsKeyPressedRepeat(key);
 }
@@ -3145,9 +3163,9 @@ pub fn setGamepadMappings(mappings: [*:0]const u8) i32 {
     return @as(i32, cdef.SetGamepadMappings(@as([*c]const u8, @ptrCast(mappings))));
 }
 
-/// Set gamepad vibration for both motors
-pub fn setGamepadVibration(gamepad: i32, leftMotor: f32, rightMotor: f32) void {
-    cdef.SetGamepadVibration(@as(c_int, gamepad), leftMotor, rightMotor);
+/// Set gamepad vibration for both motors (duration in seconds)
+pub fn setGamepadVibration(gamepad: i32, leftMotor: f32, rightMotor: f32, duration: f32) void {
+    cdef.SetGamepadVibration(@as(c_int, gamepad), leftMotor, rightMotor, duration);
 }
 
 /// Check if a mouse button has been pressed once
@@ -3260,7 +3278,7 @@ pub fn getGestureDetected() Gesture {
     return cdef.GetGestureDetected();
 }
 
-/// Get gesture hold time in milliseconds
+/// Get gesture hold time in seconds
 pub fn getGestureHoldDuration() f32 {
     return cdef.GetGestureHoldDuration();
 }
@@ -3545,6 +3563,11 @@ pub fn checkCollisionCircleRec(center: Vector2, radius: f32, rec: Rectangle) boo
     return cdef.CheckCollisionCircleRec(center, radius, rec);
 }
 
+/// Check if circle collides with a line created betweeen two points [p1] and [p2]
+pub fn checkCollisionCircleLine(center: Vector2, radius: f32, p1: Vector2, p2: Vector2) bool {
+    return cdef.CheckCollisionCircleLine(center, radius, p1, p2);
+}
+
 /// Check if point is inside rectangle
 pub fn checkCollisionPointRec(point: Vector2, rec: Rectangle) bool {
     return cdef.CheckCollisionPointRec(point, rec);
@@ -3560,19 +3583,14 @@ pub fn checkCollisionPointTriangle(point: Vector2, p1: Vector2, p2: Vector2, p3:
     return cdef.CheckCollisionPointTriangle(point, p1, p2, p3);
 }
 
-/// Check the collision between two lines defined by two points each, returns collision point by reference
-pub fn checkCollisionLines(startPos1: Vector2, endPos1: Vector2, startPos2: Vector2, endPos2: Vector2, collisionPoint: *Vector2) bool {
-    return cdef.CheckCollisionLines(startPos1, endPos1, startPos2, endPos2, @as([*c]Vector2, @ptrCast(collisionPoint)));
-}
-
 /// Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold]
 pub fn checkCollisionPointLine(point: Vector2, p1: Vector2, p2: Vector2, threshold: i32) bool {
     return cdef.CheckCollisionPointLine(point, p1, p2, @as(c_int, threshold));
 }
 
-/// Check if circle collides with a line created betweeen two points [p1] and [p2]
-pub fn checkCollisionCircleLine(center: Vector2, radius: f32, p1: Vector2, p2: Vector2) bool {
-    return cdef.CheckCollisionCircleLine(center, radius, p1, p2);
+/// Check the collision between two lines defined by two points each, returns collision point by reference
+pub fn checkCollisionLines(startPos1: Vector2, endPos1: Vector2, startPos2: Vector2, endPos2: Vector2, collisionPoint: *Vector2) bool {
+    return cdef.CheckCollisionLines(startPos1, endPos1, startPos2, endPos2, @as([*c]Vector2, @ptrCast(collisionPoint)));
 }
 
 /// Get collision rectangle for two rectangles collision
@@ -3605,9 +3623,9 @@ pub fn loadImageFromScreen() Image {
     return cdef.LoadImageFromScreen();
 }
 
-/// Check if an image is ready
-pub fn isImageReady(image: Image) bool {
-    return cdef.IsImageReady(image);
+/// Check if an image is valid (data and parameters)
+pub fn isImageValid(image: Image) bool {
+    return cdef.IsImageValid(image);
 }
 
 /// Unload image from CPU memory (RAM)
@@ -3970,9 +3988,9 @@ pub fn loadRenderTexture(width: i32, height: i32) RenderTexture2D {
     return cdef.LoadRenderTexture(@as(c_int, width), @as(c_int, height));
 }
 
-/// Check if a texture is ready
-pub fn isTextureReady(texture: Texture2D) bool {
-    return cdef.IsTextureReady(texture);
+/// Check if a texture is valid (loaded in GPU)
+pub fn isTextureValid(texture: Texture2D) bool {
+    return cdef.IsTextureValid(texture);
 }
 
 /// Unload texture from GPU memory (VRAM)
@@ -3980,9 +3998,9 @@ pub fn unloadTexture(texture: Texture2D) void {
     cdef.UnloadTexture(texture);
 }
 
-/// Check if a render texture is ready
-pub fn isRenderTextureReady(target: RenderTexture2D) bool {
-    return cdef.IsRenderTextureReady(target);
+/// Check if a render texture is valid (loaded in GPU)
+pub fn isRenderTextureValid(target: RenderTexture2D) bool {
+    return cdef.IsRenderTextureValid(target);
 }
 
 /// Unload render texture from GPU memory (VRAM)
@@ -4145,9 +4163,9 @@ pub fn loadFontFromImage(image: Image, key: Color, firstChar: i32) Font {
     return cdef.LoadFontFromImage(image, key, @as(c_int, firstChar));
 }
 
-/// Check if a font is ready
-pub fn isFontReady(font: Font) bool {
-    return cdef.IsFontReady(font);
+/// Check if a font is valid (font data loaded, WARNING: GPU texture not checked)
+pub fn isFontValid(font: Font) bool {
+    return cdef.IsFontValid(font);
 }
 
 /// Unload font from GPU memory (VRAM)
@@ -4435,9 +4453,9 @@ pub fn loadModelFromMesh(mesh: Mesh) Model {
     return cdef.LoadModelFromMesh(mesh);
 }
 
-/// Check if a model is ready
-pub fn isModelReady(model: Model) bool {
-    return cdef.IsModelReady(model);
+/// Check if a model is valid (loaded in GPU, VAO/VBOs)
+pub fn isModelValid(model: Model) bool {
+    return cdef.IsModelValid(model);
 }
 
 /// Unload model (including meshes) from memory (RAM and/or VRAM)
@@ -4600,9 +4618,9 @@ pub fn loadMaterialDefault() Material {
     return cdef.LoadMaterialDefault();
 }
 
-/// Check if a material is ready
-pub fn isMaterialReady(material: Material) bool {
-    return cdef.IsMaterialReady(material);
+/// Check if a material is valid (shader assigned, map textures loaded in GPU)
+pub fn isMaterialValid(material: Material) bool {
+    return cdef.IsMaterialValid(material);
 }
 
 /// Unload material from GPU memory (VRAM)
@@ -4620,9 +4638,14 @@ pub fn setModelMeshMaterial(model: *Model, meshId: i32, materialId: i32) void {
     cdef.SetModelMeshMaterial(@as([*c]Model, @ptrCast(model)), @as(c_int, meshId), @as(c_int, materialId));
 }
 
-/// Update model animation pose
+/// Update model animation pose (CPU)
 pub fn updateModelAnimation(model: Model, anim: ModelAnimation, frame: i32) void {
     cdef.UpdateModelAnimation(model, anim, @as(c_int, frame));
+}
+
+/// Update model animation mesh bone matrices (GPU skinning)
+pub fn updateModelAnimationBones(model: Model, anim: ModelAnimation, frame: i32) void {
+    cdef.UpdateModelAnimationBones(model, anim, @as(c_int, frame));
 }
 
 /// Unload animation data
@@ -4633,11 +4656,6 @@ pub fn unloadModelAnimation(anim: ModelAnimation) void {
 /// Check model animation skeleton match
 pub fn isModelAnimationValid(model: Model, anim: ModelAnimation) bool {
     return cdef.IsModelAnimationValid(model, anim);
-}
-
-/// Update model animation mesh bone matrices (Note GPU skinning does not work on Mac)
-pub fn updateModelAnimationBoneMatrices(model: Model, anim: ModelAnimation, frame: i32) void {
-    cdef.UpdateModelAnimationBoneMatrices(model, anim, @as(c_int, frame));
 }
 
 /// Check collision between two spheres
@@ -4710,9 +4728,9 @@ pub fn loadWave(fileName: [*:0]const u8) Wave {
     return cdef.LoadWave(@as([*c]const u8, @ptrCast(fileName)));
 }
 
-/// Checks if wave data is ready
-pub fn isWaveReady(wave: Wave) bool {
-    return cdef.IsWaveReady(wave);
+/// Checks if wave data is valid (data loaded and parameters)
+pub fn isWaveValid(wave: Wave) bool {
+    return cdef.IsWaveValid(wave);
 }
 
 /// Load sound from file
@@ -4730,9 +4748,9 @@ pub fn loadSoundAlias(source: Sound) Sound {
     return cdef.LoadSoundAlias(source);
 }
 
-/// Checks if a sound is ready
-pub fn isSoundReady(sound: Sound) bool {
-    return cdef.IsSoundReady(sound);
+/// Checks if a sound is valid (data loaded and buffers initialized)
+pub fn isSoundValid(sound: Sound) bool {
+    return cdef.IsSoundValid(sound);
 }
 
 /// Update sound buffer with new data
@@ -4830,9 +4848,9 @@ pub fn loadMusicStream(fileName: [*:0]const u8) Music {
     return cdef.LoadMusicStream(@as([*c]const u8, @ptrCast(fileName)));
 }
 
-/// Checks if a music stream is ready
-pub fn isMusicReady(music: Music) bool {
-    return cdef.IsMusicReady(music);
+/// Checks if a music stream is valid (context and buffers initialized)
+pub fn isMusicValid(music: Music) bool {
+    return cdef.IsMusicValid(music);
 }
 
 /// Unload music stream
@@ -4905,9 +4923,9 @@ pub fn loadAudioStream(sampleRate: u32, sampleSize: u32, channels: u32) AudioStr
     return cdef.LoadAudioStream(@as(c_uint, sampleRate), @as(c_uint, sampleSize), @as(c_uint, channels));
 }
 
-/// Checks if an audio stream is ready
-pub fn isAudioStreamReady(stream: AudioStream) bool {
-    return cdef.IsAudioStreamReady(stream);
+/// Checks if an audio stream is valid (buffers initialized)
+pub fn isAudioStreamValid(stream: AudioStream) bool {
+    return cdef.IsAudioStreamValid(stream);
 }
 
 /// Unload audio stream and free memory

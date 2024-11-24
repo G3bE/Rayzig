@@ -38,7 +38,14 @@ pub const rlRenderBatch = extern struct {
     currentDepth: f32,
 };
 
-pub const rlGlVersion = enum(c_int) { rl_opengl_11 = 1, rl_opengl_21 = 2, rl_opengl_33 = 3, rl_opengl_43 = 4, rl_opengl_es_20 = 5, rl_opengl_es_30 = 6 };
+pub const rlGlVersion = enum(c_int) {
+    rl_opengl_11 = 1,
+    rl_opengl_21 = 2,
+    rl_opengl_33 = 3,
+    rl_opengl_43 = 4,
+    rl_opengl_es_20 = 5,
+    rl_opengl_es_30 = 6,
+};
 
 pub const rlTraceLogLevel = enum(c_int) {
     rl_log_all = 0,
@@ -143,7 +150,12 @@ pub const rlShaderUniformDataType = enum(c_uint) {
     rl_shader_uniform_sampler2d = 12,
 };
 
-pub const rlShaderAttributeDataType = enum(c_uint) { rl_shader_attrib_float = 0, rl_shader_attrib_vec2 = 1, rl_shader_attrib_vec3 = 2, rl_shader_attrib_vec4 = 3 };
+pub const rlShaderAttributeDataType = enum(c_uint) {
+    rl_shader_attrib_float = 0,
+    rl_shader_attrib_vec2 = 1,
+    rl_shader_attrib_vec3 = 2,
+    rl_shader_attrib_vec4 = 3,
+};
 
 pub const rlFramebufferAttachType = enum(c_uint) {
     rl_attachment_color_channel0 = 0,
@@ -809,8 +821,8 @@ pub fn rlLoadTextureDepth(width: i32, height: i32, useRenderBuffer: bool) u32 {
 }
 
 /// Load texture cubemap data
-pub fn rlLoadTextureCubemap(data: ?*const anyopaque, size: i32, format: i32) u32 {
-    return @as(u32, cdef.rlLoadTextureCubemap(data, @as(c_int, size), @as(c_int, format)));
+pub fn rlLoadTextureCubemap(data: ?*const anyopaque, size: i32, format: i32, mipmapCount: i32) u32 {
+    return @as(u32, cdef.rlLoadTextureCubemap(data, @as(c_int, size), @as(c_int, format), @as(c_int, mipmapCount)));
 }
 
 /// Update texture with new data on GPU
