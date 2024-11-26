@@ -1381,6 +1381,8 @@ pub const Mesh = extern struct {
     boneWeights: [*c]f32,
     boneMatrices: [*c]Matrix,
     boneCount: c_int,
+    vaoId: c_int,
+    vboId: [*c]c_int,
 
     /// Draw a 3d mesh with material and transform
     pub fn draw(self: Mesh, material: Material, transform: Matrix) void {
