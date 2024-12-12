@@ -20,7 +20,7 @@ pub fn main() anyerror!void {
         .target = rl.Vector3.init(0, 0, 0),
         .up = rl.Vector3.init(0, 1, 0),
         .fovy = 45,
-        .projection = rl.CameraProjection.camera_perspective,
+        .projection = .perspective,
     };
 
     const cubePosition = rl.Vector3.init(0, 0, 0);
@@ -33,9 +33,9 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //-----------------------------------------------------------------------------
-        camera.update(rl.CameraMode.camera_free);
+        camera.update(.free);
 
-        if (rl.isKeyPressed(rl.KeyboardKey.key_z)) {
+        if (rl.isKeyPressed(.z)) {
             camera.target = rl.Vector3.init(0, 0, 0);
         }
         //-----------------------------------------------------------------------------

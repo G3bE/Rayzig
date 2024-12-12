@@ -15,7 +15,7 @@ pub fn main() anyerror!void {
         .target = rl.Vector3.init(0, 0, 0),
         .up = rl.Vector3.init(0, 1, 0),
         .fovy = 45,
-        .projection = rl.CameraProjection.camera_perspective,
+        .projection = .perspective,
     };
 
     const cubePosition = rl.Vector3.init(0, 1, 0);
@@ -31,14 +31,14 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //----------------------------------------------------------------------------------
-        if (rl.isCursorHidden()) rl.updateCamera(&camera, rl.CameraMode.camera_first_person);
+        if (rl.isCursorHidden()) rl.updateCamera(&camera, .first_person);
 
         // Toggle camera controls
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+        if (rl.isMouseButtonPressed(.right)) {
             if (rl.isCursorHidden()) rl.enableCursor() else rl.disableCursor();
         }
 
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+        if (rl.isMouseButtonPressed(.left)) {
             if (!collision.hit) {
                 ray = rl.getScreenToWorldRay(rl.getMousePosition(), camera);
 

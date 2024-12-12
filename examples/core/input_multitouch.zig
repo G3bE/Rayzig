@@ -28,23 +28,23 @@ pub fn main() anyerror!void {
 
         ballColor = rl.Color.beige;
 
-        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left)) {
+        if (rl.isMouseButtonDown(.left)) {
             ballColor = rl.Color.maroon;
         }
-        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_middle)) {
+        if (rl.isMouseButtonDown(.middle)) {
             ballColor = rl.Color.lime;
         }
-        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
+        if (rl.isMouseButtonDown(.right)) {
             ballColor = rl.Color.dark_blue;
         }
 
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+        if (rl.isMouseButtonPressed(.left)) {
             touchCounter = 10;
         }
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_middle)) {
+        if (rl.isMouseButtonPressed(.middle)) {
             touchCounter = 10;
         }
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+        if (rl.isMouseButtonPressed(.right)) {
             touchCounter = 10;
         }
 

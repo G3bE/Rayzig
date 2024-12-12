@@ -69,7 +69,7 @@ pub fn main() anyerror!void {
         // Update
         //----------------------------------------------------------------------------------
 
-        if (rl.isMouseButtonDown(.mouse_button_left)) {
+        if (rl.isMouseButtonDown(.left)) {
             // Sample mouse input.
             const mousePosition = rl.getMousePosition();
 

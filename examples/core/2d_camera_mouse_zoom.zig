@@ -27,14 +27,14 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //----------------------------------------------------------------------------------
-        if (rl.isKeyPressed(.key_one)) {
+        if (rl.isKeyPressed(.one)) {
             zoomMode = 0;
-        } else if (rl.isKeyPressed(.key_two)) {
+        } else if (rl.isKeyPressed(.two)) {
             zoomMode = 1;
         }
 
         // Translate based on mouse right click
-        if (rl.isMouseButtonDown(.mouse_button_right)) {
+        if (rl.isMouseButtonDown(.right)) {
             var delta = rl.getMouseDelta();
             delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);
             camera.target = rl.math.vector2Add(camera.target, delta);
@@ -63,7 +63,7 @@ pub fn main() anyerror!void {
             }
         } else {
             // Zoom based on left click
-            if (rl.isMouseButtonPressed(.mouse_button_left)) {
+            if (rl.isMouseButtonPressed(.left)) {
                 // Get the world point that is under the mouse
                 const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
 
@@ -74,7 +74,7 @@ pub fn main() anyerror!void {
                 // under the cursor to the screen space point under the cursor at any zoom
                 camera.target = mouseWorldPos;
             }
-            if (rl.isMouseButtonDown(.mouse_button_left)) {
+            if (rl.isMouseButtonDown(.left)) {
                 // Zoom increment
                 const deltaX = rl.getMouseDelta().x;
                 var scaleFactor = 1.0 + (0.01 * @abs(deltaX));

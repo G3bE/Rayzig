@@ -25,11 +25,11 @@ pub fn main() anyerror!void {
         ballPosition.x = @as(f32, @floatFromInt(rl.getMouseX()));
         ballPosition.y = @as(f32, @floatFromInt(rl.getMouseY()));
 
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+        if (rl.isMouseButtonPressed(.left)) {
             ballColor = rl.Color.maroon;
-        } else if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_middle)) {
+        } else if (rl.isMouseButtonPressed(.middle)) {
             ballColor = rl.Color.lime;
-        } else if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+        } else if (rl.isMouseButtonPressed(.right)) {
             ballColor = rl.Color.dark_blue;
         }
         //----------------------------------------------------------------------------------

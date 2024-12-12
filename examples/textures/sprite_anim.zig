@@ -51,9 +51,9 @@ pub fn main() anyerror!void {
         }
 
         // Control frames speed
-        if (rl.isKeyPressed(rl.KeyboardKey.key_right)) {
+        if (rl.isKeyPressed(.right)) {
             framesSpeed += 1;
-        } else if (rl.isKeyPressed(rl.KeyboardKey.key_left)) {
+        } else if (rl.isKeyPressed(.left)) {
             framesSpeed -= 1;
         }
 
