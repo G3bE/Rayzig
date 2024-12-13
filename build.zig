@@ -28,10 +28,7 @@ pub const OpenglVersion = enum {
     gles_3,
 };
 
-pub const LinuxDisplayBackend = enum {
-    X11,
-    Wayland,
-};
+pub const LinuxDisplayBackend = enum { X11, Wayland, Both };
 
 pub const PlatformBackend = enum {
     glfw,
