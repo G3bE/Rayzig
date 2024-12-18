@@ -92,7 +92,10 @@ pub fn linkWithEmscripten(
     }
 
     // Create the output directory because emcc can't do it.
-    const mkdir_command = b.addSystemCommand(&[_][]const u8{ "mkdir", "-p", emccOutputDir });
+    const mkdir_command = switch (builtin.os.tag) {
+        .windows => b.addSystemCommand(&.{ "cmd.exe", "/c", "if", "not", "exist", emccOutputDir, "mkdir", emccOutputDir }),
+        else => b.addSystemCommand(&.{ "mkdir", "-p", emccOutputDir }),
+    };
 
     // Actually link everything together.
     const emcc_command = b.addSystemCommand(&[_][]const u8{emcc_run_arg});
@@ -106,6 +109,7 @@ pub fn linkWithEmscripten(
     emcc_command.addArgs(&[_][]const u8{
         "-o",
         emccOutputDir ++ emccOutputFile,
+        "-sUSE_OFFSET_CONVERTER",
         "-sFULL-ES3=1",
         "-sUSE_GLFW=3",
         "-sASYNCIFY",
