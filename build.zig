@@ -6,36 +6,10 @@ const rl = @import("raylib");
 
 pub const emcc = @import("emcc.zig");
 
-pub const Options = struct {
-    raudio: bool = true,
-    rmodels: bool = true,
-    rshapes: bool = true,
-    rtext: bool = true,
-    rtextures: bool = true,
-    platform: PlatformBackend = .glfw,
-    shared: bool = false,
-    linux_display_backend: LinuxDisplayBackend = .X11,
-    opengl_version: OpenglVersion = .auto,
-};
-
-pub const OpenglVersion = enum {
-    auto,
-    gl_1_1,
-    gl_2_1,
-    gl_3_3,
-    gl_4_3,
-    gles_2,
-    gles_3,
-};
-
-pub const LinuxDisplayBackend = enum { X11, Wayland, Both };
-
-pub const PlatformBackend = enum {
-    glfw,
-    rgfw,
-    sdl,
-    drm,
-};
+pub const Options = rl.Options;
+pub const OpenglVersion = rl.OpenglVersion;
+pub const LinuxDisplayBackend = rl.LinuxDisplayBackend;
+pub const PlatformBackend = rl.PlatformBackend;
 
 const Program = struct {
     name: []const u8,
@@ -43,103 +17,32 @@ const Program = struct {
     desc: []const u8,
 };
 
-fn link(
-    b: *std.Build,
-    exe: *std.Build.Step.Compile,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-    options: Options,
-) void {
-    const lib = getRaylib(b, target, optimize, options);
-
-    const target_os = exe.rootModuleTarget().os.tag;
-    switch (target_os) {
-        .windows => {
-            exe.linkSystemLibrary("winmm");
-            exe.linkSystemLibrary("gdi32");
-            exe.linkSystemLibrary("opengl32");
-        },
-        .macos => {
-            exe.linkFramework("OpenGL");
-            exe.linkFramework("Cocoa");
-            exe.linkFramework("IOKit");
-            exe.linkFramework("CoreAudio");
-            exe.linkFramework("CoreVideo");
-        },
-        .freebsd, .openbsd, .netbsd, .dragonfly => {
-            exe.linkSystemLibrary("GL");
-            exe.linkSystemLibrary("rt");
-            exe.linkSystemLibrary("dl");
-            exe.linkSystemLibrary("m");
-            exe.linkSystemLibrary("X11");
-            exe.linkSystemLibrary("Xrandr");
-            exe.linkSystemLibrary("Xinerama");
-            exe.linkSystemLibrary("Xi");
-            exe.linkSystemLibrary("Xxf86vm");
-            exe.linkSystemLibrary("Xcursor");
-        },
-        .emscripten, .wasi => {
-            // When using emscripten, the libries don't need to be linked
-            // because emscripten is going to do that later.
-        },
-        else => { // Linux and possibly others.
-            exe.linkSystemLibrary("GL");
-            exe.linkSystemLibrary("rt");
-            exe.linkSystemLibrary("dl");
-            exe.linkSystemLibrary("m");
-            exe.linkSystemLibrary("X11");
-        },
-    }
-
-    exe.linkLibrary(lib);
-}
-
-var _raylib_lib_cache: ?*std.Build.Step.Compile = null;
 fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, options: Options) *std.Build.Step.Compile {
-    if (_raylib_lib_cache) |lib| return lib else {
-        const raylib = b.dependency("raylib", .{
-            .target = target,
-            .optimize = optimize,
-            .raudio = options.raudio,
-            .rmodels = options.rmodels,
-            .rshapes = options.rshapes,
-            .rtext = options.rtext,
-            .rtextures = options.rtextures,
-            .platform = options.platform,
-            .shared = options.shared,
-            .linux_display_backend = options.linux_display_backend,
-            .opengl_version = options.opengl_version,
-        });
+    const raylib_dep = b.dependency("raylib", .{
+        .target = target,
+        .optimize = optimize,
+        .raudio = options.raudio,
+        .rmodels = options.rmodels,
+        .rshapes = options.rshapes,
+        .rtext = options.rtext,
+        .rtextures = options.rtextures,
+        .platform = options.platform,
+        .shared = options.shared,
+        .linux_display_backend = options.linux_display_backend,
+        .opengl_version = options.opengl_version,
+    });
 
-        const lib = raylib.artifact("raylib");
+    const raylib = raylib_dep.artifact("raylib");
 
-        const raygui_dep = b.dependency("raygui", .{
-            .target = target,
-            .optimize = optimize,
-        });
+    const raygui_dep = b.dependency("raygui", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
-        var gen_step = b.addWriteFiles();
-        lib.step.dependOn(&gen_step.step);
+    rl.addRaygui(b, raylib, raygui_dep);
 
-        const raygui_c_path = gen_step.add("raygui.c", "#define RAYGUI_IMPLEMENTATION\n#include \"raygui.h\"\n");
-        lib.addCSourceFile(.{
-            .file = raygui_c_path,
-            .flags = &[_][]const u8{
-                "-std=gnu99",
-                "-D_GNU_SOURCE",
-                "-DGL_SILENCE_DEPRECATION=199309L",
-                "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
-            },
-        });
-        lib.addIncludePath(raylib.path("src"));
-        lib.addIncludePath(raygui_dep.path("src"));
-
-        lib.installHeader(raygui_dep.path("src/raygui.h"), "raygui.h");
-
-        b.installArtifact(lib);
-        _raylib_lib_cache = lib;
-        return lib;
-    }
+    b.installArtifact(raylib);
+    return raylib;
 }
 
 fn getModule(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
@@ -169,18 +72,9 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const defaults = Options{};
-    const options = Options{
-        .platform = b.option(PlatformBackend, "platform", "Compile raylib in native mode (no X11)") orelse defaults.platform,
-        .raudio = b.option(bool, "raudio", "Compile with audio support") orelse defaults.raudio,
-        .rmodels = b.option(bool, "rmodels", "Compile with models support") orelse defaults.rmodels,
-        .rtext = b.option(bool, "rtext", "Compile with text support") orelse defaults.rtext,
-        .rtextures = b.option(bool, "rtextures", "Compile with textures support") orelse defaults.rtextures,
-        .rshapes = b.option(bool, "rshapes", "Compile with shapes support") orelse defaults.rshapes,
-        .shared = b.option(bool, "shared", "Compile as shared library") orelse defaults.shared,
-        .linux_display_backend = b.option(LinuxDisplayBackend, "linux_display_backend", "Linux display backend to use") orelse defaults.linux_display_backend,
-        .opengl_version = b.option(OpenglVersion, "opengl_version", "OpenGL version to use") orelse defaults.opengl_version,
-    };
+    const raylib_artifact = this.getRaylib(b, target, optimize, Options.getOptions(b));
+    const raylib = this.getModule(b, target, optimize);
+    const raygui = this.gui.getModule(b, target, optimize);
 
     const examples = [_]Program{
         .{
@@ -346,9 +240,6 @@ pub fn build(b: *std.Build) !void {
         // },
     };
 
-    const raylib = this.getModule(b, target, optimize);
-    const raygui = this.gui.getModule(b, target, optimize);
-
     const raylib_test = b.addTest(.{
         .root_source_file = b.path("lib/raylib.zig"),
         .target = target,
@@ -375,12 +266,11 @@ pub fn build(b: *std.Build) !void {
             const exe_lib = try emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
             exe_lib.root_module.addImport("raylib", raylib);
             exe_lib.root_module.addImport("raygui", raygui);
-            const raylib_lib = getRaylib(b, target, optimize, options);
 
             // Note that raylib itself isn't actually added to the exe_lib
             // output file, so it also needs to be linked with emscripten.
-            exe_lib.linkLibrary(raylib_lib);
-            const link_step = try emcc.linkWithEmscripten(b, &[_]*std.Build.Step.Compile{ exe_lib, raylib_lib });
+            exe_lib.linkLibrary(raylib_artifact);
+            const link_step = try emcc.linkWithEmscripten(b, &[_]*std.Build.Step.Compile{ exe_lib, raylib_artifact });
             link_step.addArg("--embed-file");
             link_step.addArg("resources/");
 
@@ -397,7 +287,7 @@ pub fn build(b: *std.Build) !void {
                 .optimize = optimize,
                 .target = target,
             });
-            this.link(b, exe, target, optimize, options);
+            exe.linkLibrary(raylib_artifact);
             exe.root_module.addImport("raylib", raylib);
             exe.root_module.addImport("raygui", raygui);
 
