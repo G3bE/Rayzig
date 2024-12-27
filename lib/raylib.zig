@@ -1970,10 +1970,10 @@ pub const MAX_TOUCH_POINTS = 10;
 pub const MAX_MATERIAL_MAPS = 12;
 pub const MAX_SHADER_LOCATIONS = 32;
 
-pub const MATERIAL_MAP_DIFFUSE = MaterialMapIndex.material_map_albedo;
-pub const MATERIAL_MAP_SPECULAR = MaterialMapIndex.material_map_metalness;
-pub const SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.shader_loc_map_albedo;
-pub const SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.shader_loc_map_metalness;
+pub const MATERIAL_MAP_DIFFUSE = MaterialMapIndex.albedo;
+pub const MATERIAL_MAP_SPECULAR = MaterialMapIndex.metalness;
+pub const SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.map_albedo;
+pub const SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.map_metalness;
 
 /// Set icon for window (multiple images, RGBA 32bit, only PLATFORM_DESKTOP)
 pub fn setWindowIcons(images: []Image) void {
