@@ -2861,8 +2861,8 @@ pub fn openURL(url: [*:0]const u8) void {
 }
 
 /// Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...)
-pub fn traceLog(logLevel: TraceLogLevel, text: [*:0]const u8) void {
-    cdef.TraceLog(logLevel, @as([*c]const u8, @ptrCast(text)));
+pub fn traceLog(logLevel: TraceLogLevel, text: [*:0]const u8, args: anytype) void {
+    @call(.auto, cdef.TraceLog, .{ logLevel, text } ++ args);
 }
 
 /// Set the current threshold (minimum) log level
