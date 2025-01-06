@@ -177,7 +177,7 @@ pub extern "c" fn IsGamepadButtonReleased(gamepad: c_int, button: rl.GamepadButt
 pub extern "c" fn IsGamepadButtonUp(gamepad: c_int, button: rl.GamepadButton) bool;
 pub extern "c" fn GetGamepadButtonPressed() rl.GamepadButton;
 pub extern "c" fn GetGamepadAxisCount(gamepad: c_int) c_int;
-pub extern "c" fn GetGamepadAxisMovement(gamepad: c_int, axis: c_int) f32;
+pub extern "c" fn GetGamepadAxisMovement(gamepad: c_int, axis: rl.GamepadAxis) f32;
 pub extern "c" fn SetGamepadMappings(mappings: [*c]const u8) c_int;
 pub extern "c" fn SetGamepadVibration(gamepad: c_int, leftMotor: f32, rightMotor: f32, duration: f32) void;
 pub extern "c" fn IsMouseButtonPressed(button: rl.MouseButton) bool;

@@ -3157,7 +3157,7 @@ pub fn getGamepadAxisCount(gamepad: i32) i32 {
 
 /// Get axis movement value for a gamepad axis
 pub fn getGamepadAxisMovement(gamepad: i32, axis: GamepadAxis) f32 {
-    return @as(f32, cdef.GetGamepadAxisMovement(@as(c_int, gamepad), @as(c_int, axis)));
+    return @as(f32, cdef.GetGamepadAxisMovement(@as(c_int, gamepad), axis));
 }
 
 /// Set internal gamepad mappings (SDL_GameControllerDB)
