@@ -173,6 +173,7 @@ _fix_enums_data = [
     ("flag",        "ConfigFlags",           r"IsWindowState"),
     ("flags",       "Gesture",               r"SetGesturesEnabled"),
     ("button",      "GamepadButton",         r".*GamepadButton.*"),
+    ("axis",        "GamepadAxis",           r".*GamepadAxis.*"),
     ("button",      "MouseButton",           r".*MouseButton.*"),
     ("control",     "GuiControl",            r"Gui.etStyle"),
 #    ("property",    "GuiControlProperty",    r"Gui.etStyle"),
