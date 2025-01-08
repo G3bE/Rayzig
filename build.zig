@@ -259,6 +259,61 @@ pub fn build(b: *std.Build) !void {
             .desc = "Renders the raylib-zig logo",
         },
         .{
+            .name = "logo_raylib_anim",
+            .path = "examples/shapes/logo_raylib_anim.zig",
+            .desc = "Animates the raylib logo",
+        },
+        .{
+            .name = "basic_shapes",
+            .path = "examples/shapes/basic_shapes.zig",
+            .desc = "Renders various shapes",
+        },
+        .{
+            .name = "bouncing_ball",
+            .path = "examples/shapes/bouncing_ball.zig",
+            .desc = "Bouncing ball animation with collision detection",
+        },
+        .{
+            .name = "collision_area",
+            .path = "examples/shapes/collision_area.zig",
+            .desc = "Demonstrates collision detection",
+        },
+        .{
+            .name = "colors_palette",
+            .path = "examples/shapes/colors_palette.zig",
+            .desc = "Renders an interactive color palette",
+        },
+        .{
+            .name = "draw_circle_sector",
+            .path = "examples/shapes/draw_circle_sector.zig",
+            .desc = "Dynamically renders a circle sector using raygui",
+        },
+        .{
+            .name = "draw_rectangle_rounded",
+            .path = "examples/shapes/draw_rectangle_rounded.zig",
+            .desc = "Dynamically renders a rounded rectangle using raygui",
+        },
+        .{
+            .name = "draw_ring",
+            .path = "examples/shapes/draw_ring.zig",
+            .desc = "Dynaically renders a ring using raygui",
+        },
+        .{
+            .name = "following_eyes",
+            .path = "examples/shapes/following_eyes.zig",
+            .desc = "Renders eyes that follow mouse movement",
+        },
+        .{
+            .name = "lines_bezier",
+            .path = "examples/shapes/lines_bezier.zig",
+            .desc = "Renders an interactive line bezier",
+        },
+        .{
+            .name = "rectangle_scaling",
+            .path = "examples/shapes/rectangle_scaling.zig",
+            .desc = "Renders a resizable rectangle",
+        },
+        .{
             .name = "sprite_anim",
             .path = "examples/textures/sprite_anim.zig",
             .desc = "Animate a sprite",
