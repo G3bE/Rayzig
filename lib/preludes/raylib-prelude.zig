@@ -2182,6 +2182,24 @@ pub fn textFormat(text: [*:0]const u8, args: anytype) [*:0]const u8 {
     return std.mem.span(@call(.auto, cdef.TextFormat, .{@as([*c]const u8, @ptrCast(text))} ++ args));
 }
 
+/// Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...)
+pub fn traceLog(logLevel: TraceLogLevel, text: [*:0]const u8, args: anytype) void {
+    comptime {
+        const info = @typeInfo(@TypeOf(args));
+        switch (info) {
+            .Struct => {
+                if (!info.Struct.is_tuple)
+                    @compileError("Args should be in a tuple (call this function like traceLog(.{arg1, arg2, ...});)!");
+            },
+            else => {
+                @compileError("Args should be in a tuple (call this function like traceLog(.{arg1, arg2, ...});)!");
+            },
+        }
+    }
+
+    @call(.auto, cdef.TraceLog, .{ logLevel, @as([*c]const u8, @ptrCast(text)) } ++ args);
+}
+
 /// Split text into multiple strings
 pub fn textSplit(text: [*:0]const u8, delimiter: u8) [][*:0]const u8 {
     var count: i32 = 0;

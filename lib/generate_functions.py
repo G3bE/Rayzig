@@ -331,6 +331,7 @@ def parse_header(header_name: str, output_file: str, ext_file: str, prefix: str,
 
         manual = [
             "TextFormat",
+            "TraceLog",
             "LoadShader",
             "ExportDataAsCode",
             "LoadFileData",
