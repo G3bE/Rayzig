@@ -24,6 +24,7 @@ pub const RaylibError = error{
     LoadShader,
     LoadImage,
     LoadModel,
+    LoadTexture,
 };
 
 pub const Vector2 = extern struct {
@@ -1163,11 +1164,11 @@ pub const Image = extern struct {
     }
 
     /// Load texture from image data
-    pub fn toTexture(self: Image) Texture {
+    pub fn toTexture(self: Image) RaylibError!Texture {
         return Texture.fromImage(self);
     }
 
-    pub fn asCubemap(self: Image, layout: CubemapLayout) Texture {
+    pub fn asCubemap(self: Image, layout: CubemapLayout) RaylibError!Texture {
         return Texture.fromCubemap(self, layout);
     }
 };
@@ -1179,17 +1180,17 @@ pub const Texture = extern struct {
     mipmaps: c_int,
     format: PixelFormat,
 
-    pub fn init(fileName: [*:0]const u8) Texture {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Texture {
         return rl.loadTexture(fileName);
     }
 
     /// Load texture from image data
-    pub fn fromImage(image: Image) Texture {
+    pub fn fromImage(image: Image) RaylibError!Texture {
         return rl.loadTextureFromImage(image);
     }
 
     /// Load cubemap from image, multiple image cubemap layouts supported
-    pub fn fromCubemap(image: Image, layout: CubemapLayout) Texture {
+    pub fn fromCubemap(image: Image, layout: CubemapLayout) RaylibError!Texture {
         return rl.loadTextureCubemap(image, layout);
     }
 
@@ -2174,6 +2175,27 @@ pub fn loadImagePalette(image: Image, maxPaletteSize: i32) RaylibError![]Color {
     res.ptr = @as([*]Color, @ptrCast(ptr));
     res.len = @as(usize, @intCast(colorCount));
     return res;
+}
+
+/// Load texture from file into GPU memory (VRAM)
+pub fn loadTexture(fileName: [*:0]const u8) RaylibError!Texture2D {
+    const texture = cdef.LoadTexture(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load texture from image data
+pub fn loadTextureFromImage(image: Image) RaylibError!Texture2D {
+    const texture = cdef.LoadTextureFromImage(image);
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load cubemap from image, multiple image cubemap layouts supported
+pub fn loadTextureCubemap(image: Image, layout: CubemapLayout) RaylibError!TextureCubemap {
+    const texture = cdef.LoadTextureCubemap(image, layout);
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
 }
 
 /// Load font from file with extended parameters, use null for fontChars to load the default character set
@@ -4038,21 +4060,6 @@ pub fn imageDrawText(dst: *Image, text: [*:0]const u8, posX: i32, posY: i32, fon
 /// Draw text (custom sprite font) within an image (destination)
 pub fn imageDrawTextEx(dst: *Image, font: Font, text: [*:0]const u8, position: Vector2, fontSize: f32, spacing: f32, tint: Color) void {
     cdef.ImageDrawTextEx(@as([*c]Image, @ptrCast(dst)), font, @as([*c]const u8, @ptrCast(text)), position, fontSize, spacing, tint);
-}
-
-/// Load texture from file into GPU memory (VRAM)
-pub fn loadTexture(fileName: [*:0]const u8) Texture2D {
-    return cdef.LoadTexture(@as([*c]const u8, @ptrCast(fileName)));
-}
-
-/// Load texture from image data
-pub fn loadTextureFromImage(image: Image) Texture2D {
-    return cdef.LoadTextureFromImage(image);
-}
-
-/// Load cubemap from image, multiple image cubemap layouts supported
-pub fn loadTextureCubemap(image: Image, layout: CubemapLayout) TextureCubemap {
-    return cdef.LoadTextureCubemap(image, layout);
 }
 
 /// Load texture for rendering (framebuffer)
