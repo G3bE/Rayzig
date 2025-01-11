@@ -26,6 +26,7 @@ pub const RaylibError = error{
     LoadModel,
     LoadTexture,
     LoadRenderTexture,
+    LoadWave,
 };
 
 pub const Vector2 = extern struct {
@@ -2365,9 +2366,18 @@ pub fn unloadModelAnimations(animations: []ModelAnimation) void {
     cdef.UnloadModelAnimations(@as([*c]ModelAnimation, @ptrCast(animations)), @as(c_int, @intCast(animations.len)));
 }
 
+/// Load wave data from file
+pub fn loadWave(fileName: [*:0]const u8) RaylibError!Wave {
+    const wave = cdef.LoadWave(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsWaveValid(wave);
+    return if (isValid) wave else RaylibError.LoadWave;
+}
+
 /// Load wave from memory buffer, fileType refers to extension: i.e. '.wav'
-pub fn loadWaveFromMemory(fileType: [*:0]const u8, fileData: []const u8) Wave {
-    return cdef.LoadWaveFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+pub fn loadWaveFromMemory(fileType: [*:0]const u8, fileData: []const u8) RaylibError!Wave {
+    const wave = cdef.LoadWaveFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+    const isValid = cdef.IsWaveValid(wave);
+    return if (isValid) wave else RaylibError.LoadWave;
 }
 
 /// Load samples data from wave as a 32bit float data array
