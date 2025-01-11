@@ -25,6 +25,7 @@ pub const RaylibError = error{
     LoadImage,
     LoadModel,
     LoadTexture,
+    LoadRenderTexture,
 };
 
 pub const Vector2 = extern struct {
@@ -1237,7 +1238,7 @@ pub const RenderTexture = extern struct {
     texture: Texture,
     depth: Texture,
 
-    pub fn init(width: i32, height: i32) RenderTexture {
+    pub fn init(width: i32, height: i32) RaylibError!RenderTexture {
         return rl.loadRenderTexture(width, height);
     }
 
@@ -2196,6 +2197,13 @@ pub fn loadTextureCubemap(image: Image, layout: CubemapLayout) RaylibError!Textu
     const texture = cdef.LoadTextureCubemap(image, layout);
     const isValid = cdef.IsTextureValid(texture);
     return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load texture for rendering (framebuffer)
+pub fn loadRenderTexture(width: i32, height: i32) RaylibError!RenderTexture2D {
+    const render_texture = cdef.LoadRenderTexture(@as(c_int, width), @as(c_int, height));
+    const isValid = cdef.IsRenderTextureValid(render_texture);
+    return if (isValid) render_texture else RaylibError.LoadRenderTexture;
 }
 
 /// Load font from file with extended parameters, use null for fontChars to load the default character set
