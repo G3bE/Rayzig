@@ -22,6 +22,7 @@ pub const RaylibError = error{
     LoadModelAnimations,
     LoadShader,
     LoadImage,
+    LoadModel,
 };
 
 pub const Vector2 = extern struct {
@@ -1447,12 +1448,12 @@ pub const Model = extern struct {
     bindPose: [*c]Transform,
 
     /// Load model from file (meshes and materials)
-    pub fn init(fileName: [*:0]const u8) Model {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Model {
         return rl.loadModel(fileName);
     }
 
     /// Load model from generated mesh (default material)
-    pub fn fromMesh(mesh: Mesh) Model {
+    pub fn fromMesh(mesh: Mesh) RaylibError!Model {
         return rl.loadModelFromMesh(mesh);
     }
 
@@ -2286,6 +2287,20 @@ pub fn loadMaterials(fileName: [*:0]const u8) RaylibError![]Material {
     res.ptr = @as([*]Material, @ptrCast(ptr));
     res.len = @as(usize, @intCast(materialCount));
     return res;
+}
+
+/// Load model from files (meshes and materials)
+pub fn loadModel(fileName: [*:0]const u8) RaylibError!Model {
+    const model = cdef.LoadModel(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsModelValid(model);
+    return if (isValid) model else RaylibError.LoadModel;
+}
+
+/// Load model from generated mesh (default material)
+pub fn loadModelFromMesh(mesh: Mesh) RaylibError!Model {
+    const model = cdef.LoadModelFromMesh(mesh);
+    const isValid = cdef.IsModelValid(model);
+    return if (isValid) model else RaylibError.LoadModel;
 }
 
 /// Load model animations from file
@@ -4484,16 +4499,6 @@ pub fn drawRay(ray: Ray, color: Color) void {
 /// Draw a grid (centered at (0, 0, 0))
 pub fn drawGrid(slices: i32, spacing: f32) void {
     cdef.DrawGrid(@as(c_int, slices), spacing);
-}
-
-/// Load model from files (meshes and materials)
-pub fn loadModel(fileName: [*:0]const u8) Model {
-    return cdef.LoadModel(@as([*c]const u8, @ptrCast(fileName)));
-}
-
-/// Load model from generated mesh (default material)
-pub fn loadModelFromMesh(mesh: Mesh) Model {
-    return cdef.LoadModelFromMesh(mesh);
 }
 
 /// Check if a model is valid (loaded in GPU, VAO/VBOs)
