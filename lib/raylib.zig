@@ -29,6 +29,7 @@ pub const RaylibError = error{
     LoadWave,
     LoadSound,
     LoadMusic,
+    LoadAudioStream,
 };
 
 pub const Vector2 = extern struct {
@@ -2409,6 +2410,13 @@ pub fn loadMusicStreamFromMemory(fileType: [*:0]const u8, data: []const u8) Rayl
     const music = cdef.LoadMusicStreamFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
     const isValid = cdef.IsMusicValid(music);
     return if (isValid) music else RaylibError.LoadMusic;
+}
+
+/// Load audio stream (to stream raw audio pcm data)
+pub fn loadAudioStream(sampleRate: u32, sampleSize: u32, channels: u32) RaylibError!AudioStream {
+    const audio_stream = cdef.LoadAudioStream(@as(c_uint, sampleRate), @as(c_uint, sampleSize), @as(c_uint, channels));
+    const isValid = cdef.IsAudioStreamValid(audio_stream);
+    return if (isValid) audio_stream else RaylibError.LoadAudioStream;
 }
 
 /// Draw lines sequence (using gl lines)
@@ -4996,11 +5004,6 @@ pub fn getMusicTimeLength(music: Music) f32 {
 /// Get current music time played (in seconds)
 pub fn getMusicTimePlayed(music: Music) f32 {
     return cdef.GetMusicTimePlayed(music);
-}
-
-/// Load audio stream (to stream raw audio pcm data)
-pub fn loadAudioStream(sampleRate: u32, sampleSize: u32, channels: u32) AudioStream {
-    return cdef.LoadAudioStream(@as(c_uint, sampleRate), @as(c_uint, sampleSize), @as(c_uint, channels));
 }
 
 /// Checks if an audio stream is valid (buffers initialized)
