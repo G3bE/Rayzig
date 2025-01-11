@@ -28,6 +28,7 @@ pub const RaylibError = error{
     LoadRenderTexture,
     LoadWave,
     LoadSound,
+    LoadMusic,
 };
 
 pub const Vector2 = extern struct {
@@ -2396,9 +2397,18 @@ pub fn loadWaveSamples(wave: Wave) []f32 {
     return res;
 }
 
+/// Load music stream from file
+pub fn loadMusicStream(fileName: [*:0]const u8) RaylibError!Music {
+    const music = cdef.LoadMusicStream(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsMusicValid(music);
+    return if (isValid) music else RaylibError.LoadMusic;
+}
+
 /// Load music stream from data
-pub fn loadMusicStreamFromMemory(fileType: [*:0]const u8, data: []const u8) Music {
-    return cdef.LoadMusicStreamFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+pub fn loadMusicStreamFromMemory(fileType: [*:0]const u8, data: []const u8) RaylibError!Music {
+    const music = cdef.LoadMusicStreamFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+    const isValid = cdef.IsMusicValid(music);
+    return if (isValid) music else RaylibError.LoadMusic;
 }
 
 /// Draw lines sequence (using gl lines)
@@ -4916,11 +4926,6 @@ pub fn waveFormat(wave: *Wave, sampleRate: i32, sampleSize: i32, channels: i32) 
 /// Unload samples data loaded with LoadWaveSamples()
 pub fn unloadWaveSamples(samples: []f32) void {
     cdef.UnloadWaveSamples(@as([*c]f32, @ptrCast(samples)));
-}
-
-/// Load music stream from file
-pub fn loadMusicStream(fileName: [*:0]const u8) Music {
-    return cdef.LoadMusicStream(@as([*c]const u8, @ptrCast(fileName)));
 }
 
 /// Checks if a music stream is valid (context and buffers initialized)
