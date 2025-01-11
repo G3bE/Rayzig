@@ -20,6 +20,7 @@ pub const RaylibError = error{
     LoadCodepoints,
     LoadMaterials,
     LoadModelAnimations,
+    LoadShader,
 };
 
 pub const Vector2 = extern struct {
@@ -1981,7 +1982,7 @@ pub fn setWindowIcons(images: []Image) void {
 }
 
 /// Load shader from files and bind default locations
-pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) Shader {
+pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) RaylibError!Shader {
     var vsFileNameFinal = @as([*c]const u8, 0);
     var fsFileNameFinal = @as([*c]const u8, 0);
     if (vsFileName) |vsFileNameSure| {
@@ -1990,11 +1991,13 @@ pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) Shader
     if (fsFileName) |fsFileNameSure| {
         fsFileNameFinal = @as([*c]const u8, @ptrCast(fsFileNameSure));
     }
-    return cdef.LoadShader(vsFileNameFinal, fsFileNameFinal);
+    const shader = cdef.LoadShader(vsFileNameFinal, fsFileNameFinal);
+    const isValid = cdef.IsShaderValid(shader);
+    return if (isValid) shader else RaylibError.LoadShader;
 }
 
 /// Load shader from code strings and bind default locations
-pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) Shader {
+pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) RaylibError!Shader {
     var vsCodeFinal = @as([*c]const u8, 0);
     var fsCodeFinal = @as([*c]const u8, 0);
     if (vsCode) |vsCodeSure| {
@@ -2003,7 +2006,9 @@ pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) Shad
     if (fsCode) |fsCodeSure| {
         fsCodeFinal = @as([*c]const u8, @ptrCast(fsCodeSure));
     }
-    return cdef.LoadShaderFromMemory(vsCodeFinal, fsCodeFinal);
+    const shader = cdef.LoadShaderFromMemory(vsCodeFinal, fsCodeFinal);
+    const isValid = cdef.IsShaderValid(shader);
+    return if (isValid) shader else RaylibError.LoadShader;
 }
 
 /// Load file data as byte array (read)
