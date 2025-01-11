@@ -18,6 +18,7 @@ pub const RaylibError = error{
     LoadImagePalette,
     LoadFontData,
     LoadCodepoints,
+    LoadMaterial,
     LoadMaterials,
     LoadModelAnimations,
     LoadShader,
@@ -2276,6 +2277,13 @@ pub fn drawMeshInstanced(mesh: Mesh, material: Material, transforms: []const Mat
     cdef.DrawMeshInstanced(mesh, material, @as([*c]const Matrix, @ptrCast(transforms)), @as(c_int, @intCast(transforms.len)));
 }
 
+/// Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)
+pub fn loadMaterialDefault() RaylibError!Material {
+    const material = cdef.LoadMaterialDefault();
+    const isValid = cdef.IsMaterialValid(material);
+    return if (isValid) material else RaylibError.LoadMaterial;
+}
+
 /// Load materials from model file
 pub fn loadMaterials(fileName: [*:0]const u8) RaylibError![]Material {
     var materialCount: i32 = 0;
@@ -2286,6 +2294,12 @@ pub fn loadMaterials(fileName: [*:0]const u8) RaylibError![]Material {
 
     res.ptr = @as([*]Material, @ptrCast(ptr));
     res.len = @as(usize, @intCast(materialCount));
+
+    for (res) |r| {
+        if (!cdef.IsMaterialValid(r))
+            return RaylibError.LoadMaterial;
+    }
+
     return res;
 }
 
