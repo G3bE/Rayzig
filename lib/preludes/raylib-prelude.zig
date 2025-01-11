@@ -21,6 +21,7 @@ pub const RaylibError = error{
     LoadMaterials,
     LoadModelAnimations,
     LoadShader,
+    LoadImage,
 };
 
 pub const Vector2 = extern struct {
@@ -840,27 +841,27 @@ pub const Image = extern struct {
     format: PixelFormat,
 
     /// Load image from file into CPU memory (RAM)
-    pub fn init(fileName: [*:0]const u8) Image {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Image {
         return rl.loadImage(fileName);
     }
 
     /// Load image from RAW file data
-    pub fn initRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) Image {
+    pub fn initRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) RaylibError!Image {
         return rl.loadImageRaw(fileName, width, height, format, headerSize);
     }
 
     /// Load image sequence from file (frames appended to image.data)
-    pub fn initAnim(fileName: [*:0]const u8, frames: *i32) Image {
+    pub fn initAnim(fileName: [*:0]const u8, frames: *i32) RaylibError!Image {
         return rl.loadImageAnim(fileName, frames);
     }
 
     /// Load image from GPU texture data
-    pub fn fromTexture(texture: Texture) Image {
+    pub fn fromTexture(texture: Texture) RaylibError!Image {
         return rl.loadImageFromTexture(texture);
     }
 
     /// Load image from screen buffer and (screenshot)
-    pub fn fromScreen() Image {
+    pub fn fromScreen() RaylibError!Image {
         return rl.loadImageFromScreen();
     }
 
@@ -870,12 +871,12 @@ pub const Image = extern struct {
     }
 
     /// Create an image from text (default font)
-    pub fn initText(text: [*:0]const u8, fontSize: i32, color: Color) Image {
+    pub fn initText(text: [*:0]const u8, fontSize: i32, color: Color) RaylibError!Image {
         return rl.imageText(text, fontSize, color);
     }
 
     /// Create an image from text (custom sprite font)
-    pub fn initTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, t: Color) Image {
+    pub fn initTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, t: Color) RaylibError!Image {
         return rl.imageTextEx(font, text, fontSize, spacing, t);
     }
 
@@ -2084,13 +2085,68 @@ pub fn computeSHA1(data: []u8) [5]u32 {
     return res[0..5].*;
 }
 
-pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) Image {
-    return cdef.LoadImageAnimFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)), @as([*c]c_int, @ptrCast(frames)));
+/// Load image from file into CPU memory (RAM)
+pub fn loadImage(fileName: [*:0]const u8) RaylibError!Image {
+    const image = cdef.LoadImage(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from RAW file data
+pub fn loadImageRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) RaylibError!Image {
+    const image = cdef.LoadImageRaw(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, width), @as(c_int, height), format, @as(c_int, headerSize));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image sequence from file (frames appended to image.data)
+pub fn loadImageAnim(fileName: [*:0]const u8, frames: *i32) RaylibError!Image {
+    const image = cdef.LoadImageAnim(@as([*c]const u8, @ptrCast(fileName)), @as([*c]c_int, @ptrCast(frames)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from GPU texture data
+pub fn loadImageFromTexture(texture: Texture2D) RaylibError!Image {
+    const image = cdef.LoadImageFromTexture(texture);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from screen buffer and (screenshot)
+pub fn loadImageFromScreen() RaylibError!Image {
+    const image = cdef.LoadImageFromScreen();
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) RaylibError!Image {
+    const image = cdef.LoadImageAnimFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)), @as([*c]c_int, @ptrCast(frames)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Load image from memory buffer, fileType refers to extension: i.e. '.png'
-pub fn loadImageFromMemory(fileType: [*:0]const u8, fileData: []const u8) Image {
-    return cdef.LoadImageFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+pub fn loadImageFromMemory(fileType: [*:0]const u8, fileData: []const u8) RaylibError!Image {
+    const image = cdef.LoadImageFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Create an image from text (default font)
+pub fn imageText(text: [*:0]const u8, fontSize: i32, color: Color) RaylibError!Image {
+    // TODO: ImageText requires SUPPORT_MODULE_RTEXT. Error out if not loaded.
+    const image = cdef.ImageText(@as([*c]const u8, @ptrCast(text)), @as(c_int, fontSize), color);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Create an image from text (custom sprite font)
+pub fn imageTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, tint: Color) RaylibError!Image {
+    // TODO: ImageTextEx requires SUPPORT_MODULE_RTEXT. Error out if not loaded.
+    const image = cdef.ImageTextEx(font, @as([*c]const u8, @ptrCast(text)), fontSize, spacing, tint);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Load color data from image as a Color array (RGBA - 32bit)
@@ -2318,8 +2374,10 @@ pub fn imageKernelConvolution(image: *Image, kernel: []const f32) void {
 }
 
 /// Generate image font atlas using chars info
-pub fn genImageFontAtlas(chars: []const GlyphInfo, recs: [][]Rectangle, fontSize: i32, padding: i32, packMethod: i32) Image {
-    return cdef.GenImageFontAtlas(@as([*c]const GlyphInfo, @ptrCast(chars)), @as([*c][*c]Rectangle, @ptrCast(recs)), @as(c_int, @intCast(recs.len)), @as(c_int, fontSize), @as(c_int, padding), @as(c_int, packMethod));
+pub fn genImageFontAtlas(chars: []const GlyphInfo, recs: [][]Rectangle, fontSize: i32, padding: i32, packMethod: i32) RaylibError!Image {
+    const image = cdef.GenImageFontAtlas(@as([*c]const GlyphInfo, @ptrCast(chars)), @as([*c][*c]Rectangle, @ptrCast(recs)), @as(c_int, @intCast(recs.len)), @as(c_int, fontSize), @as(c_int, padding), @as(c_int, packMethod));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Unload font chars info data (RAM)
