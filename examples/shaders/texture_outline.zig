@@ -15,10 +15,10 @@ pub fn main() anyerror!void {
     rl.initWindow(screenWidth, screenHeight, "raylib [shaders] example - Apply an outline to a texture");
     defer rl.closeWindow(); // Close window and OpenGL context
 
-    const texture: rl.Texture = rl.Texture.init("resources/textures/fudesumi.png");
+    const texture: rl.Texture = try rl.Texture.init("resources/textures/fudesumi.png");
     defer rl.unloadTexture(texture);
 
-    const shdrOutline: rl.Shader = rl.loadShader(null, "resources/shaders/glsl330/outline.fs");
+    const shdrOutline: rl.Shader = try rl.loadShader(null, "resources/shaders/glsl330/outline.fs");
     defer rl.unloadShader(shdrOutline);
 
     var outlineSize: f32 = 2.0;

@@ -41,7 +41,7 @@ pub fn main() anyerror!void {
     rl.setAudioStreamBufferSizeDefault(MAX_SAMPLES_PER_UPDATE);
 
     // Init raw audio stream (sample rate: 44100, sample size: 16bit-short, channels: 1-mono)
-    const stream = rl.loadAudioStream(44100, 16, 1);
+    const stream = try rl.loadAudioStream(44100, 16, 1);
     defer rl.unloadAudioStream(stream); // Close raw audio stream and delete buffers from RAM
 
     rl.setAudioStreamCallback(stream, &audioInputCallback);

@@ -17,7 +17,7 @@ pub fn main() anyerror!void {
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
-    const scarfy: rl.Texture = rl.Texture.init("resources/textures/scarfy.png"); // Texture loading
+    const scarfy: rl.Texture = try rl.Texture.init("resources/textures/scarfy.png"); // Texture loading
     defer rl.unloadTexture(scarfy); // Texture unloading
 
     const position = rl.Vector2.init(350.0, 280.0);
