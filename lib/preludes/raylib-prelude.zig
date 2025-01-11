@@ -16,6 +16,7 @@ pub const RaylibError = error{
     LoadFileData,
     LoadImageColors,
     LoadImagePalette,
+    LoadFont,
     LoadFontData,
     LoadCodepoints,
     LoadMaterial,
@@ -1289,22 +1290,22 @@ pub const Font = extern struct {
     glyphs: [*c]GlyphInfo,
 
     /// Load font from file into GPU memory (VRAM)
-    pub fn init(fileName: [*:0]const u8) Font {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Font {
         return rl.loadFont(fileName);
     }
 
     /// Load font from file with extended parameters, use null for fontChars to load the default character set
-    pub fn initEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+    pub fn initEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
         return rl.loadFontEx(fileName, fontSize, fontChars);
     }
 
     /// Load font from Image (XNA style)
-    pub fn fromImage(image: Image, key: Color, firstChar: i32) Font {
+    pub fn fromImage(image: Image, key: Color, firstChar: i32) RaylibError!Font {
         return rl.loadFontFromImage(image, key, firstChar);
     }
 
     /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
-    pub fn fromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+    pub fn fromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
         return rl.loadFontFromMemory(fileType, fileData, fontSize, fontChars);
     }
 
@@ -2210,19 +2211,36 @@ pub fn loadRenderTexture(width: i32, height: i32) RaylibError!RenderTexture2D {
     return if (isValid) render_texture else RaylibError.LoadRenderTexture;
 }
 
+/// Get the default Font
+pub fn getFontDefault() RaylibError!Font {
+    // TODO: GetFontDefault requires SUPPORT_DEFAULT_FONT. Error out if unset.
+    const font = cdef.GetFontDefault();
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
+/// Load font from file into GPU memory (VRAM)
+pub fn loadFont(fileName: [*:0]const u8) RaylibError!Font {
+    const font = cdef.LoadFont(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
 /// Load font from file with extended parameters, use null for fontChars to load the default character set
-pub fn loadFontEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+pub fn loadFontEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
     var fontCharsFinal = @as([*c]c_int, 0);
     var fontCharsLen: c_int = @as(c_int, 0);
     if (fontChars) |fontCharsSure| {
         fontCharsFinal = @as([*c]c_int, @ptrCast(fontCharsSure));
         fontCharsLen = @as(i32, @intCast(fontCharsSure.len));
     }
-    return cdef.LoadFontEx(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, fontSize), fontCharsFinal, fontCharsLen);
+    const font = cdef.LoadFontEx(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, fontSize), fontCharsFinal, fontCharsLen);
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
 }
 
 /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
-pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
     var fileDataFinal = @as([*c]const u8, 0);
     var fileDataLen: i32 = 0;
     if (fileData) |fileDataSure| {
@@ -2230,7 +2248,16 @@ pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSi
         fileDataLen = @as(i32, @intCast(fileDataSure.len));
     }
     const codepointCount: c_int = if (fontChars) |fontCharsSure| @intCast(fontCharsSure.len) else 0;
-    return cdef.LoadFontFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileDataFinal)), @as(c_int, @intCast(fileDataLen)), @as(c_int, fontSize), @as([*c]c_int, @ptrCast(fontChars)), codepointCount);
+    const font = cdef.LoadFontFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileDataFinal)), @as(c_int, @intCast(fileDataLen)), @as(c_int, fontSize), @as([*c]c_int, @ptrCast(fontChars)), codepointCount);
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
+/// Load font from Image (XNA style)
+pub fn loadFontFromImage(image: Image, key: Color, firstChar: i32) RaylibError!Font {
+    const font = cdef.LoadFontFromImage(image, key, @as(c_int, firstChar));
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
 }
 
 /// Load font data for further use
