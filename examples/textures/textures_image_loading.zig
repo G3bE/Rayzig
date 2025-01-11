@@ -33,8 +33,8 @@ pub fn main() anyerror!void {
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    defer rl.unloadTexture(texture); // Texture unloading
     defer rl.closeWindow(); // Close window and OpenGL context
+    defer rl.unloadTexture(texture); // Texture unloading
     //--------------------------------------------------------------------------------------
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
