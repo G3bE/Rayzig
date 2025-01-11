@@ -27,6 +27,7 @@ pub const RaylibError = error{
     LoadTexture,
     LoadRenderTexture,
     LoadWave,
+    LoadSound,
 };
 
 pub const Vector2 = extern struct {
@@ -2364,6 +2365,13 @@ pub fn loadModelAnimations(fileName: [*:0]const u8) RaylibError![]ModelAnimation
 /// Unload animation data
 pub fn unloadModelAnimations(animations: []ModelAnimation) void {
     cdef.UnloadModelAnimations(@as([*c]ModelAnimation, @ptrCast(animations)), @as(c_int, @intCast(animations.len)));
+}
+
+/// Load sound from file
+pub fn loadSound(fileName: [*:0]const u8) RaylibError!Sound {
+    const sound = cdef.LoadSound(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsSoundValid(sound);
+    return if (isValid) sound else RaylibError.LoadSound;
 }
 
 /// Load wave data from file
@@ -4803,11 +4811,6 @@ pub fn getMasterVolume() f32 {
 /// Checks if wave data is valid (data loaded and parameters)
 pub fn isWaveValid(wave: Wave) bool {
     return cdef.IsWaveValid(wave);
-}
-
-/// Load sound from file
-pub fn loadSound(fileName: [*:0]const u8) Sound {
-    return cdef.LoadSound(@as([*c]const u8, @ptrCast(fileName)));
 }
 
 /// Load sound from wave data
