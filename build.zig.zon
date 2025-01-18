@@ -1,17 +1,17 @@
 .{
     .name = "raylib-zig",
-    .version = "5.5.0",
+    .version = "5.6.0-dev",
     .dependencies = .{
         .raylib = .{
-            .url = "https://github.com/raysan5/raylib/archive/c1ab645ca298a2801097931d1079b10ff7eb9df8.tar.gz",
-            .hash = "1220d93782859726c2c46a05450615b7edfc82b7319daac50cbc7c3345d660b022d7",
+            .url = "git+https://github.com/raysan5/raylib#e70f9157bcae046804e754e98a2694adcfdbfa5d",
+            .hash = "1220f6aef0d678ba6e3d67a60069b5f32dc965a930c797f463840d224759d615b864",
         },
         .raygui = .{
-            .url = "https://github.com/raysan5/raygui/archive/1e03efca48c50c5ea4b4a053d5bf04bad58d3e43.tar.gz",
-            .hash = "122062b24f031e68f0d11c91dfc32aed5baf06caf26ed3c80ea1802f9e788ef1c358",
+            .url = "git+https://github.com/raysan5/raygui#76b36b597edb70ffaf96f046076adc20d67e7827",
+            .hash = "1220ce6e40b454766d901ac4a19b2408f84365fcad4e4840c788b59f34a0ed698883",
         },
     },
-    .minimum_zig_version = "0.13.0",
+    .minimum_zig_version = "0.14.0-dev.2802+257054a14",
     .paths = .{
         "build.zig",
         "build.zig.zon",
