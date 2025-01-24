@@ -116,6 +116,7 @@ fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
         const raygui_dep = b.dependency("raygui", .{
             .target = target,
             .optimize = optimize,
+            .shared = options.shared,
         });
 
         var gen_step = b.addWriteFiles();
