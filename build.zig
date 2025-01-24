@@ -116,22 +116,35 @@ fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
         const raygui_dep = b.dependency("raygui", .{
             .target = target,
             .optimize = optimize,
-            .shared = options.shared,
         });
 
         var gen_step = b.addWriteFiles();
         lib.step.dependOn(&gen_step.step);
 
         const raygui_c_path = gen_step.add("raygui.c", "#define RAYGUI_IMPLEMENTATION\n#include \"raygui.h\"\n");
+
+        var raylib_flags_arr = std.ArrayList([]const u8).init(b.allocator);
+        defer raylib_flags_arr.deinit();
+
+        raylib_flags_arr.appendSlice(&[_][]const u8{
+            "-std=gnu99",
+            "-D_GNU_SOURCE",
+            "-DGL_SILENCE_DEPRECATION=199309L",
+            "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
+        }) catch @panic("Failed to append slice");
+
+        if (options.shared) {
+            raylib_flags_arr.appendSlice(&[_][]const u8{
+                "-fPIC",
+                "-DBUILD_LIBTYPE_SHARED",
+            }) catch @panic("Failed to append slice");
+        }
+
         lib.addCSourceFile(.{
             .file = raygui_c_path,
-            .flags = &[_][]const u8{
-                "-std=gnu99",
-                "-D_GNU_SOURCE",
-                "-DGL_SILENCE_DEPRECATION=199309L",
-                "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
-            },
+            .flags = raylib_flags_arr.items,
         });
+
         lib.addIncludePath(raylib.path("src"));
         lib.addIncludePath(raygui_dep.path("src"));
 
