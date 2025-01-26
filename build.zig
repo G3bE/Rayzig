@@ -49,8 +49,8 @@ fn link(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     options: Options,
-) void {
-    const lib = getRaylib(b, target, optimize, options);
+) !void {
+    const lib = try getRaylib(b, target, optimize, options);
 
     const target_os = exe.rootModuleTarget().os.tag;
     switch (target_os) {
@@ -95,7 +95,7 @@ fn link(
 }
 
 var _raylib_lib_cache: ?*std.Build.Step.Compile = null;
-fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, options: Options) *std.Build.Step.Compile {
+fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, options: Options) !*std.Build.Step.Compile {
     if (_raylib_lib_cache) |lib| return lib else {
         const raylib = b.dependency("raylib", .{
             .target = target,
@@ -126,18 +126,18 @@ fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
         var raylib_flags_arr = std.ArrayList([]const u8).init(b.allocator);
         defer raylib_flags_arr.deinit();
 
-        raylib_flags_arr.appendSlice(&[_][]const u8{
+        try raylib_flags_arr.appendSlice(&[_][]const u8{
             "-std=gnu99",
             "-D_GNU_SOURCE",
             "-DGL_SILENCE_DEPRECATION=199309L",
             "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
-        }) catch @panic("Failed to append slice");
+        });
 
         if (options.shared) {
-            raylib_flags_arr.appendSlice(&[_][]const u8{
+            try raylib_flags_arr.appendSlice(&[_][]const u8{
                 "-fPIC",
                 "-DBUILD_LIBTYPE_SHARED",
-            }) catch @panic("Failed to append slice");
+            });
         }
 
         lib.addCSourceFile(.{
@@ -389,7 +389,7 @@ pub fn build(b: *std.Build) !void {
             const exe_lib = try emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
             exe_lib.root_module.addImport("raylib", raylib);
             exe_lib.root_module.addImport("raygui", raygui);
-            const raylib_lib = getRaylib(b, target, optimize, options);
+            const raylib_lib = try getRaylib(b, target, optimize, options);
 
             // Note that raylib itself isn't actually added to the exe_lib
             // output file, so it also needs to be linked with emscripten.
@@ -411,7 +411,7 @@ pub fn build(b: *std.Build) !void {
                 .optimize = optimize,
                 .target = target,
             });
-            this.link(b, exe, target, optimize, options);
+            try this.link(b, exe, target, optimize, options);
             exe.root_module.addImport("raylib", raylib);
             exe.root_module.addImport("raygui", raygui);
 
