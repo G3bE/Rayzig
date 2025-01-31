@@ -348,6 +348,11 @@ pub fn build(b: *std.Build) !void {
             .desc = "Show fonts included with raylib",
         },
         .{
+            .name = "text_writing_anim",
+            .path = "examples/text/text_writing_anim.zig",
+            .desc = "Simple text animation",
+        },
+        .{
             .name = "textures_image_loading",
             .path = "examples/textures/textures_image_loading.zig",
             .desc = "Image loading and texture creation",
