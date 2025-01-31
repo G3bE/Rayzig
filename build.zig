@@ -343,6 +343,11 @@ pub fn build(b: *std.Build) !void {
             .desc = "Renders variables as text",
         },
         .{
+            .name = "text_raylib_fonts",
+            .path = "examples/text/text_raylib_fonts.zig",
+            .desc = "Show fonts included with raylib",
+        },
+        .{
             .name = "textures_image_loading",
             .path = "examples/textures/textures_image_loading.zig",
             .desc = "Image loading and texture creation",
