@@ -58,9 +58,9 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) {
         // Update
         // ---------------------------------------------------------------------
-        if (rl.isKeyPressed(.key_f)) rl.toggleFullscreen(); // Modifies window size when scaling!
+        if (rl.isKeyPressed(.f)) rl.toggleFullscreen(); // Modifies window size when scaling!
 
-        if (rl.isKeyPressed(.key_r)) {
+        if (rl.isKeyPressed(.r)) {
             if (rl.isWindowState(rl.ConfigFlags { .window_resizable = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .window_resizable = true });
             } else {
@@ -68,7 +68,7 @@ pub fn main() anyerror!void {
             }
         }
 
-        if (rl.isKeyPressed(.key_d)) {
+        if (rl.isKeyPressed(.d)) {
             if (rl.isWindowState(rl.ConfigFlags { .window_undecorated = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .window_undecorated = true });
             } else {
@@ -76,7 +76,7 @@ pub fn main() anyerror!void {
             }
         }
 
-        if (rl.isKeyPressed(.key_h)) {
+        if (rl.isKeyPressed(.h)) {
             if (!rl.isWindowState(rl.ConfigFlags { .window_hidden = true })) {
                 rl.setWindowState(rl.ConfigFlags { .window_hidden = true });
             }
@@ -88,7 +88,7 @@ pub fn main() anyerror!void {
             if (frames_counter >= 240) rl.clearWindowState(rl.ConfigFlags { .window_hidden = true }); // Show window after 3 seconds
         }
 
-        if (rl.isKeyPressed(.key_n)) {
+        if (rl.isKeyPressed(.n)) {
             if (!rl.isWindowState(rl.ConfigFlags { .window_minimized = true })) {
                 rl.minimizeWindow();
             }
@@ -100,32 +100,32 @@ pub fn main() anyerror!void {
             if (frames_counter >= 240) rl.restoreWindow(); // Restore window after 3 seconds
         }
 
-        if (rl.isKeyPressed(.key_m)) {
+        if (rl.isKeyPressed(.m)) {
             // NOTE: Requires `flag_window_resizable` enabled!
             if (rl.isWindowState(rl.ConfigFlags { .window_maximized = true })) {
                 rl.restoreWindow();
             } else rl.maximizeWindow();
         }
 
-        if (rl.isKeyPressed(.key_u)) {
+        if (rl.isKeyPressed(.u)) {
             if (rl.isWindowState(rl.ConfigFlags { .window_unfocused = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .window_unfocused = true });
             } else rl.setWindowState(rl.ConfigFlags { .window_unfocused = true });
         }
 
-        if (rl.isKeyPressed(.key_t)) {
+        if (rl.isKeyPressed(.t)) {
             if (rl.isWindowState(rl.ConfigFlags { .window_topmost = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .window_topmost = true });
             } else rl.setWindowState(rl.ConfigFlags { .window_topmost = true });
         }
 
-        if (rl.isKeyPressed(.key_a)) {
+        if (rl.isKeyPressed(.a)) {
             if (rl.isWindowState(rl.ConfigFlags { .window_always_run = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .window_always_run = true });
             } else rl.setWindowState(rl.ConfigFlags { .window_always_run = true });
         }
 
-        if (rl.isKeyPressed(.key_v)) {
+        if (rl.isKeyPressed(.v)) {
             if (rl.isWindowState(rl.ConfigFlags { .vsync_hint = true })) {
                 rl.clearWindowState(rl.ConfigFlags { .vsync_hint = true });
             } else rl.setWindowState(rl.ConfigFlags { .vsync_hint = true });

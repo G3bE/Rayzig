@@ -27,7 +27,7 @@ pub fn build(b: *std.Build) !void {
 
     //web exports are completely separate
     if (target.query.os_tag == .emscripten) {
-        const exe_lib = rlz.emcc.compileForEmscripten(b, "$PROJECT_NAME", "src/main.zig", target, optimize);
+        const exe_lib = try rlz.emcc.compileForEmscripten(b, "$PROJECT_NAME", "src/main.zig", target, optimize);
 
         exe_lib.linkLibrary(raylib_artifact);
         exe_lib.root_module.addImport("raylib", raylib);
@@ -61,21 +61,17 @@ pub fn build(b: *std.Build) !void {
 
 New-Item -Name "build.zig" -ItemType "file" -Value $BUILD_DOT_ZIG -Force
 
-$HASH = $(zig fetch https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz)
-
 $ZON_FILE = @"
 .{
     .name = "$PROJECT_NAME",
     .version = "0.0.1",
     .dependencies = .{
-        .@"raylib-zig" = .{
-            .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
-            .hash = "$HASH",
-        },
     },
     .paths = .{""},
 }
 "@
+
+zig fetch --save git+https://github.com/Not-Nik/raylib-zig#devel
 
 New-Item -Name "build.zig.zon" -ItemType "file" -Value $ZON_FILE -Force
 

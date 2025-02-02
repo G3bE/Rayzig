@@ -17,7 +17,7 @@ pub fn main() anyerror!void {
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
-    const scarfy: rl.Texture = rl.Texture.init("resources/textures/scarfy.png"); // Texture loading
+    const scarfy: rl.Texture = try rl.Texture.init("resources/textures/scarfy.png"); // Texture loading
     defer rl.unloadTexture(scarfy); // Texture unloading
 
     const position = rl.Vector2.init(350.0, 280.0);
@@ -51,9 +51,9 @@ pub fn main() anyerror!void {
         }
 
         // Control frames speed
-        if (rl.isKeyPressed(rl.KeyboardKey.key_right)) {
+        if (rl.isKeyPressed(.right)) {
             framesSpeed += 1;
-        } else if (rl.isKeyPressed(rl.KeyboardKey.key_left)) {
+        } else if (rl.isKeyPressed(.left)) {
             framesSpeed -= 1;
         }
 

@@ -20,9 +20,9 @@ pub fn main() anyerror!void {
 
     // NOTE: Be careful, background width must be equal or bigger than screen width
     // if not, texture should be draw more than two times for scrolling effect
-    const background = rl.loadTexture("resources/textures/cyberpunk_street_background.png");
-    const midground = rl.loadTexture("resources/textures/cyberpunk_street_midground.png");
-    const foreground = rl.loadTexture("resources/textures/cyberpunk_street_foreground.png");
+    const background = try rl.loadTexture("resources/textures/cyberpunk_street_background.png");
+    const midground = try rl.loadTexture("resources/textures/cyberpunk_street_midground.png");
+    const foreground = try rl.loadTexture("resources/textures/cyberpunk_street_foreground.png");
     defer rl.unloadTexture(background); // Unload background texture
     defer rl.unloadTexture(midground); // Unload midground texture
     defer rl.unloadTexture(foreground); // Unload foreground texture

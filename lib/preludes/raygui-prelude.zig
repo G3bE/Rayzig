@@ -418,6 +418,40 @@ pub const GuiIconName = enum(c_int) {
     icon_255 = 255,
 };
 
+/// Set one style property
+pub fn guiSetStyle(control: GuiControl, comptime property: anytype, value: i32) void {
+    comptime var property_int: c_int = undefined;
+
+    comptime {
+        if (@TypeOf(property) == GuiControlProperty) {
+            property_int = @intCast(@intFromEnum(property));
+        } else if (@TypeOf(property) == GuiDefaultProperty) { // comparison can't be chained :(
+            property_int = @intCast(@intFromEnum(property));
+        } else {
+            @compileError("Invalid property type for guiSetStyle");
+        }
+    }
+
+    cdef.GuiSetStyle(control, property_int, @as(c_int, value));
+}
+
+/// Get one style property
+pub fn guiGetStyle(control: GuiControl, comptime property: anytype) i32 {
+    comptime var property_int: c_int = undefined;
+
+    comptime {
+        if (@TypeOf(property) == GuiControlProperty) {
+            property_int = @intCast(@intFromEnum(property));
+        } else if (@TypeOf(property) == GuiDefaultProperty) { // comparison can't be chained :(
+            property_int = @intCast(@intFromEnum(property));
+        } else {
+            @compileError("Invalid property type for guiGetStyle");
+        }
+    }
+
+    return @as(i32, cdef.GuiGetStyle(control, property_int));
+}
+
 /// Get raygui icons data pointer
 pub fn guiGetIcons() RayguiError![]u32 {
     var res: []u32 = undefined;

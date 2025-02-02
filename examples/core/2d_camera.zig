@@ -51,9 +51,9 @@ pub fn main() anyerror!void {
         //----------------------------------------------------------------------------------
 
         // Player movement
-        if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
+        if (rl.isKeyDown(.right)) {
             player.x += 2;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
+        } else if (rl.isKeyDown(.left)) {
             player.x -= 2;
         }
 
@@ -61,9 +61,9 @@ pub fn main() anyerror!void {
         camera.target = rl.Vector2.init(player.x + 20, player.y + 20);
 
         // Camera rotation controls
-        if (rl.isKeyDown(rl.KeyboardKey.key_a)) {
+        if (rl.isKeyDown(.a)) {
             camera.rotation -= 1;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_s)) {
+        } else if (rl.isKeyDown(.s)) {
             camera.rotation += 1;
         }
 
@@ -76,7 +76,7 @@ pub fn main() anyerror!void {
         camera.zoom = rl.math.clamp(camera.zoom, 0.1, 3.0);
 
         // Camera reset (zoom and rotation)
-        if (rl.isKeyPressed(rl.KeyboardKey.key_r)) {
+        if (rl.isKeyPressed(.r)) {
             camera.zoom = 1.0;
             camera.rotation = 0.0;
         }

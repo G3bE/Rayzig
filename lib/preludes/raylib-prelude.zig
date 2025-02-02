@@ -16,10 +16,21 @@ pub const RaylibError = error{
     LoadFileData,
     LoadImageColors,
     LoadImagePalette,
+    LoadFont,
     LoadFontData,
     LoadCodepoints,
+    LoadMaterial,
     LoadMaterials,
     LoadModelAnimations,
+    LoadShader,
+    LoadImage,
+    LoadModel,
+    LoadTexture,
+    LoadRenderTexture,
+    LoadWave,
+    LoadSound,
+    LoadMusic,
+    LoadAudioStream,
 };
 
 pub const Vector2 = extern struct {
@@ -839,27 +850,27 @@ pub const Image = extern struct {
     format: PixelFormat,
 
     /// Load image from file into CPU memory (RAM)
-    pub fn init(fileName: [*:0]const u8) Image {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Image {
         return rl.loadImage(fileName);
     }
 
     /// Load image from RAW file data
-    pub fn initRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) Image {
+    pub fn initRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) RaylibError!Image {
         return rl.loadImageRaw(fileName, width, height, format, headerSize);
     }
 
     /// Load image sequence from file (frames appended to image.data)
-    pub fn initAnim(fileName: [*:0]const u8, frames: *i32) Image {
+    pub fn initAnim(fileName: [*:0]const u8, frames: *i32) RaylibError!Image {
         return rl.loadImageAnim(fileName, frames);
     }
 
     /// Load image from GPU texture data
-    pub fn fromTexture(texture: Texture) Image {
+    pub fn fromTexture(texture: Texture) RaylibError!Image {
         return rl.loadImageFromTexture(texture);
     }
 
     /// Load image from screen buffer and (screenshot)
-    pub fn fromScreen() Image {
+    pub fn fromScreen() RaylibError!Image {
         return rl.loadImageFromScreen();
     }
 
@@ -869,12 +880,12 @@ pub const Image = extern struct {
     }
 
     /// Create an image from text (default font)
-    pub fn initText(text: [*:0]const u8, fontSize: i32, color: Color) Image {
+    pub fn initText(text: [*:0]const u8, fontSize: i32, color: Color) RaylibError!Image {
         return rl.imageText(text, fontSize, color);
     }
 
     /// Create an image from text (custom sprite font)
-    pub fn initTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, t: Color) Image {
+    pub fn initTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, t: Color) RaylibError!Image {
         return rl.imageTextEx(font, text, fontSize, spacing, t);
     }
 
@@ -1159,11 +1170,11 @@ pub const Image = extern struct {
     }
 
     /// Load texture from image data
-    pub fn toTexture(self: Image) Texture {
+    pub fn toTexture(self: Image) RaylibError!Texture {
         return Texture.fromImage(self);
     }
 
-    pub fn asCubemap(self: Image, layout: CubemapLayout) Texture {
+    pub fn asCubemap(self: Image, layout: CubemapLayout) RaylibError!Texture {
         return Texture.fromCubemap(self, layout);
     }
 };
@@ -1175,17 +1186,17 @@ pub const Texture = extern struct {
     mipmaps: c_int,
     format: PixelFormat,
 
-    pub fn init(fileName: [*:0]const u8) Texture {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Texture {
         return rl.loadTexture(fileName);
     }
 
     /// Load texture from image data
-    pub fn fromImage(image: Image) Texture {
+    pub fn fromImage(image: Image) RaylibError!Texture {
         return rl.loadTextureFromImage(image);
     }
 
     /// Load cubemap from image, multiple image cubemap layouts supported
-    pub fn fromCubemap(image: Image, layout: CubemapLayout) Texture {
+    pub fn fromCubemap(image: Image, layout: CubemapLayout) RaylibError!Texture {
         return rl.loadTextureCubemap(image, layout);
     }
 
@@ -1232,7 +1243,7 @@ pub const RenderTexture = extern struct {
     texture: Texture,
     depth: Texture,
 
-    pub fn init(width: i32, height: i32) RenderTexture {
+    pub fn init(width: i32, height: i32) RaylibError!RenderTexture {
         return rl.loadRenderTexture(width, height);
     }
 
@@ -1279,22 +1290,22 @@ pub const Font = extern struct {
     glyphs: [*c]GlyphInfo,
 
     /// Load font from file into GPU memory (VRAM)
-    pub fn init(fileName: [*:0]const u8) Font {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Font {
         return rl.loadFont(fileName);
     }
 
     /// Load font from file with extended parameters, use null for fontChars to load the default character set
-    pub fn initEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+    pub fn initEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
         return rl.loadFontEx(fileName, fontSize, fontChars);
     }
 
     /// Load font from Image (XNA style)
-    pub fn fromImage(image: Image, key: Color, firstChar: i32) Font {
+    pub fn fromImage(image: Image, key: Color, firstChar: i32) RaylibError!Font {
         return rl.loadFontFromImage(image, key, firstChar);
     }
 
     /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
-    pub fn fromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+    pub fn fromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
         return rl.loadFontFromMemory(fileType, fileData, fontSize, fontChars);
     }
 
@@ -1305,7 +1316,7 @@ pub const Font = extern struct {
 
     /// Check if a font is ready
     pub fn isReady(self: Font) bool {
-        return rl.isFontReady(self);
+        return rl.isFontValid(self);
     }
 
     /// Export font as code file, returns true on success
@@ -1381,6 +1392,8 @@ pub const Mesh = extern struct {
     boneWeights: [*c]f32,
     boneMatrices: [*c]Matrix,
     boneCount: c_int,
+    vaoId: c_int,
+    vboId: [*c]c_int,
 
     /// Draw a 3d mesh with material and transform
     pub fn draw(self: Mesh, material: Material, transform: Matrix) void {
@@ -1443,12 +1456,12 @@ pub const Model = extern struct {
     bindPose: [*c]Transform,
 
     /// Load model from file (meshes and materials)
-    pub fn init(fileName: [*:0]const u8) Model {
+    pub fn init(fileName: [*:0]const u8) RaylibError!Model {
         return rl.loadModel(fileName);
     }
 
     /// Load model from generated mesh (default material)
-    pub fn fromMesh(mesh: Mesh) Model {
+    pub fn fromMesh(mesh: Mesh) RaylibError!Model {
         return rl.loadModelFromMesh(mesh);
     }
 
@@ -1609,348 +1622,347 @@ pub const ConfigFlags = packed struct {
 };
 
 pub const TraceLogLevel = enum(c_int) {
-    log_all = 0,
-    log_trace = 1,
-    log_debug = 2,
-    log_info = 3,
-    log_warning = 4,
-    log_error = 5,
-    log_fatal = 6,
-    log_none = 7,
+    all = 0,
+    trace = 1,
+    debug = 2,
+    info = 3,
+    warning = 4,
+    err = 5,
+    fatal = 6,
+    none = 7,
 };
 
 pub const KeyboardKey = enum(c_int) {
-    key_null = 0,
-    key_apostrophe = 39,
-    key_comma = 44,
-    key_minus = 45,
-    key_period = 46,
-    key_slash = 47,
-    key_zero = 48,
-    key_one = 49,
-    key_two = 50,
-    key_three = 51,
-    key_four = 52,
-    key_five = 53,
-    key_six = 54,
-    key_seven = 55,
-    key_eight = 56,
-    key_nine = 57,
-    key_semicolon = 59,
-    key_equal = 61,
-    key_a = 65,
-    key_b = 66,
-    key_c = 67,
-    key_d = 68,
-    key_e = 69,
-    key_f = 70,
-    key_g = 71,
-    key_h = 72,
-    key_i = 73,
-    key_j = 74,
-    key_k = 75,
-    key_l = 76,
-    key_m = 77,
-    key_n = 78,
-    key_o = 79,
-    key_p = 80,
-    key_q = 81,
-    key_r = 82,
-    key_s = 83,
-    key_t = 84,
-    key_u = 85,
-    key_v = 86,
-    key_w = 87,
-    key_x = 88,
-    key_y = 89,
-    key_z = 90,
-    key_space = 32,
-    key_escape = 256,
-    key_enter = 257,
-    key_tab = 258,
-    key_backspace = 259,
-    key_insert = 260,
-    key_delete = 261,
-    key_right = 262,
-    key_left = 263,
-    key_down = 264,
-    key_up = 265,
-    key_page_up = 266,
-    key_page_down = 267,
-    key_home = 268,
-    key_end = 269,
-    key_caps_lock = 280,
-    key_scroll_lock = 281,
-    key_num_lock = 282,
-    key_print_screen = 283,
-    key_pause = 284,
-    key_f1 = 290,
-    key_f2 = 291,
-    key_f3 = 292,
-    key_f4 = 293,
-    key_f5 = 294,
-    key_f6 = 295,
-    key_f7 = 296,
-    key_f8 = 297,
-    key_f9 = 298,
-    key_f10 = 299,
-    key_f11 = 300,
-    key_f12 = 301,
-    key_left_shift = 340,
-    key_left_control = 341,
-    key_left_alt = 342,
-    key_left_super = 343,
-    key_right_shift = 344,
-    key_right_control = 345,
-    key_right_alt = 346,
-    key_right_super = 347,
-    key_kb_menu = 348,
-    key_left_bracket = 91,
-    key_backslash = 92,
-    key_right_bracket = 93,
-    key_grave = 96,
-    key_kp_0 = 320,
-    key_kp_1 = 321,
-    key_kp_2 = 322,
-    key_kp_3 = 323,
-    key_kp_4 = 324,
-    key_kp_5 = 325,
-    key_kp_6 = 326,
-    key_kp_7 = 327,
-    key_kp_8 = 328,
-    key_kp_9 = 329,
-    key_kp_decimal = 330,
-    key_kp_divide = 331,
-    key_kp_multiply = 332,
-    key_kp_subtract = 333,
-    key_kp_add = 334,
-    key_kp_enter = 335,
-    key_kp_equal = 336,
-    key_back = 4,
-    //key_menu = 82,
-    key_volume_up = 24,
-    key_volume_down = 25,
+    null = 0,
+    apostrophe = 39,
+    comma = 44,
+    minus = 45,
+    period = 46,
+    slash = 47,
+    zero = 48,
+    one = 49,
+    two = 50,
+    three = 51,
+    four = 52,
+    five = 53,
+    six = 54,
+    seven = 55,
+    eight = 56,
+    nine = 57,
+    semicolon = 59,
+    equal = 61,
+    a = 65,
+    b = 66,
+    c = 67,
+    d = 68,
+    e = 69,
+    f = 70,
+    g = 71,
+    h = 72,
+    i = 73,
+    j = 74,
+    k = 75,
+    l = 76,
+    m = 77,
+    n = 78,
+    o = 79,
+    p = 80,
+    q = 81,
+    r = 82,
+    s = 83,
+    t = 84,
+    u = 85,
+    v = 86,
+    w = 87,
+    x = 88,
+    y = 89,
+    z = 90,
+    space = 32,
+    escape = 256,
+    enter = 257,
+    tab = 258,
+    backspace = 259,
+    insert = 260,
+    delete = 261,
+    right = 262,
+    left = 263,
+    down = 264,
+    up = 265,
+    page_up = 266,
+    page_down = 267,
+    home = 268,
+    end = 269,
+    caps_lock = 280,
+    scroll_lock = 281,
+    num_lock = 282,
+    print_screen = 283,
+    pause = 284,
+    f1 = 290,
+    f2 = 291,
+    f3 = 292,
+    f4 = 293,
+    f5 = 294,
+    f6 = 295,
+    f7 = 296,
+    f8 = 297,
+    f9 = 298,
+    f10 = 299,
+    f11 = 300,
+    f12 = 301,
+    left_shift = 340,
+    left_control = 341,
+    left_alt = 342,
+    left_super = 343,
+    right_shift = 344,
+    right_control = 345,
+    right_alt = 346,
+    right_super = 347,
+    kb_menu = 348,
+    left_bracket = 91,
+    backslash = 92,
+    right_bracket = 93,
+    grave = 96,
+    kp_0 = 320,
+    kp_1 = 321,
+    kp_2 = 322,
+    kp_3 = 323,
+    kp_4 = 324,
+    kp_5 = 325,
+    kp_6 = 326,
+    kp_7 = 327,
+    kp_8 = 328,
+    kp_9 = 329,
+    kp_decimal = 330,
+    kp_divide = 331,
+    kp_multiply = 332,
+    kp_subtract = 333,
+    kp_add = 334,
+    kp_enter = 335,
+    kp_equal = 336,
+    back = 4,
+    //menu = 82,
+    volume_up = 24,
+    volume_down = 25,
 };
 
 pub const MouseButton = enum(c_int) {
-    mouse_button_left = 0,
-    mouse_button_right = 1,
-    mouse_button_middle = 2,
-    mouse_button_side = 3,
-    mouse_button_extra = 4,
-    mouse_button_forward = 5,
-    mouse_button_back = 6,
+    left = 0,
+    right = 1,
+    middle = 2,
+    side = 3,
+    extra = 4,
+    forward = 5,
+    back = 6,
 };
 
 pub const MouseCursor = enum(c_int) {
-    mouse_cursor_default = 0,
-    mouse_cursor_arrow = 1,
-    mouse_cursor_ibeam = 2,
-    mouse_cursor_crosshair = 3,
-    mouse_cursor_pointing_hand = 4,
-    mouse_cursor_resize_ew = 5,
-    mouse_cursor_resize_ns = 6,
-    mouse_cursor_resize_nwse = 7,
-    mouse_cursor_resize_nesw = 8,
-    mouse_cursor_resize_all = 9,
-    mouse_cursor_not_allowed = 10,
+    default = 0,
+    arrow = 1,
+    ibeam = 2,
+    crosshair = 3,
+    pointing_hand = 4,
+    resize_ew = 5,
+    resize_ns = 6,
+    resize_nwse = 7,
+    resize_nesw = 8,
+    resize_all = 9,
+    not_allowed = 10,
 };
 
 pub const GamepadButton = enum(c_int) {
-    gamepad_button_unknown = 0,
-    gamepad_button_left_face_up = 1,
-    gamepad_button_left_face_right = 2,
-    gamepad_button_left_face_down = 3,
-    gamepad_button_left_face_left = 4,
-    gamepad_button_right_face_up = 5,
-    gamepad_button_right_face_right = 6,
-    gamepad_button_right_face_down = 7,
-    gamepad_button_right_face_left = 8,
-    gamepad_button_left_trigger_1 = 9,
-    gamepad_button_left_trigger_2 = 10,
-    gamepad_button_right_trigger_1 = 11,
-    gamepad_button_right_trigger_2 = 12,
-    gamepad_button_middle_left = 13,
-    gamepad_button_middle = 14,
-    gamepad_button_middle_right = 15,
-    gamepad_button_left_thumb = 16,
-    gamepad_button_right_thumb = 17,
+    unknown = 0,
+    left_face_up = 1,
+    left_face_right = 2,
+    left_face_down = 3,
+    left_face_left = 4,
+    right_face_up = 5,
+    right_face_right = 6,
+    right_face_down = 7,
+    right_face_left = 8,
+    left_trigger_1 = 9,
+    left_trigger_2 = 10,
+    right_trigger_1 = 11,
+    right_trigger_2 = 12,
+    middle_left = 13,
+    middle = 14,
+    middle_right = 15,
+    left_thumb = 16,
+    right_thumb = 17,
 };
 
 pub const GamepadAxis = enum(c_int) {
-    gamepad_axis_left_x = 0,
-    gamepad_axis_left_y = 1,
-    gamepad_axis_right_x = 2,
-    gamepad_axis_right_y = 3,
-    gamepad_axis_left_trigger = 4,
-    gamepad_axis_right_trigger = 5,
+    left_x = 0,
+    left_y = 1,
+    right_x = 2,
+    right_y = 3,
+    left_trigger = 4,
+    right_trigger = 5,
 };
 
 pub const MaterialMapIndex = enum(c_int) {
-    material_map_albedo = 0,
-    material_map_metalness = 1,
-    material_map_normal = 2,
-    material_map_roughness = 3,
-    material_map_occlusion = 4,
-    material_map_emission = 5,
-    material_map_height = 6,
-    material_map_cubemap = 7,
-    material_map_irradiance = 8,
-    material_map_prefilter = 9,
-    material_map_brdf = 10,
+    albedo = 0,
+    metalness = 1,
+    normal = 2,
+    roughness = 3,
+    occlusion = 4,
+    emission = 5,
+    height = 6,
+    cubemap = 7,
+    irradiance = 8,
+    prefilter = 9,
+    brdf = 10,
 };
 
 pub const ShaderLocationIndex = enum(c_int) {
-    shader_loc_vertex_position = 0,
-    shader_loc_vertex_texcoord01 = 1,
-    shader_loc_vertex_texcoord02 = 2,
-    shader_loc_vertex_normal = 3,
-    shader_loc_vertex_tangent = 4,
-    shader_loc_vertex_color = 5,
-    shader_loc_matrix_mvp = 6,
-    shader_loc_matrix_view = 7,
-    shader_loc_matrix_projection = 8,
-    shader_loc_matrix_model = 9,
-    shader_loc_matrix_normal = 10,
-    shader_loc_vector_view = 11,
-    shader_loc_color_diffuse = 12,
-    shader_loc_color_specular = 13,
-    shader_loc_color_ambient = 14,
-    shader_loc_map_albedo = 15,
-    shader_loc_map_metalness = 16,
-    shader_loc_map_normal = 17,
-    shader_loc_map_roughness = 18,
-    shader_loc_map_occlusion = 19,
-    shader_loc_map_emission = 20,
-    shader_loc_map_height = 21,
-    shader_loc_map_cubemap = 22,
-    shader_loc_map_irradiance = 23,
-    shader_loc_map_prefilter = 24,
-    shader_loc_map_brdf = 25,
-    shader_loc_vertex_boneids = 26,
-    shader_loc_vertex_boneweights = 27,
-    shader_loc_bone_matrices = 28
+    vertex_position = 0,
+    vertex_texcoord01 = 1,
+    vertex_texcoord02 = 2,
+    vertex_normal = 3,
+    vertex_tangent = 4,
+    vertex_color = 5,
+    matrix_mvp = 6,
+    matrix_view = 7,
+    matrix_projection = 8,
+    matrix_model = 9,
+    matrix_normal = 10,
+    vector_view = 11,
+    color_diffuse = 12,
+    color_specular = 13,
+    color_ambient = 14,
+    map_albedo = 15,
+    map_metalness = 16,
+    map_normal = 17,
+    map_roughness = 18,
+    map_occlusion = 19,
+    map_emission = 20,
+    map_height = 21,
+    map_cubemap = 22,
+    map_irradiance = 23,
+    map_prefilter = 24,
+    map_brdf = 25,
+    vertex_boneids = 26,
+    vertex_boneweights = 27,
+    bone_matrices = 28,
 };
 
 pub const ShaderUniformDataType = enum(c_int) {
-    shader_uniform_float = 0,
-    shader_uniform_vec2 = 1,
-    shader_uniform_vec3 = 2,
-    shader_uniform_vec4 = 3,
-    shader_uniform_int = 4,
-    shader_uniform_ivec2 = 5,
-    shader_uniform_ivec3 = 6,
-    shader_uniform_ivec4 = 7,
-    shader_uniform_sampler2d = 8,
+    float = 0,
+    vec2 = 1,
+    vec3 = 2,
+    vec4 = 3,
+    int = 4,
+    ivec2 = 5,
+    ivec3 = 6,
+    ivec4 = 7,
+    sampler2d = 8,
 };
 
 pub const ShaderAttribute = enum(c_int) {
-    shader_attrib_float = 0,
-    shader_attrib_vec2 = 1,
-    shader_attrib_vec3 = 2,
-    shader_attrib_vec4 = 3,
+    float = 0,
+    vec2 = 1,
+    vec3 = 2,
+    vec4 = 3,
 };
 
 pub const PixelFormat = enum(c_int) {
-    pixelformat_uncompressed_grayscale = 1,
-    pixelformat_uncompressed_gray_alpha = 2,
-    pixelformat_uncompressed_r5g6b5 = 3,
-    pixelformat_uncompressed_r8g8b8 = 4,
-    pixelformat_uncompressed_r5g5b5a1 = 5,
-    pixelformat_uncompressed_r4g4b4a4 = 6,
-    pixelformat_uncompressed_r8g8b8a8 = 7,
-    pixelformat_uncompressed_r32 = 8,
-    pixelformat_uncompressed_r32g32b32 = 9,
-    pixelformat_uncompressed_r32g32b32a32 = 10,
-    pixelformat_uncompressed_r16 = 11,
-    pixelformat_uncompressed_r16g16b16 = 12,
-    pixelformat_uncompressed_r16g16b16a16 = 13,
-    pixelformat_compressed_dxt1_rgb = 14,
-    pixelformat_compressed_dxt1_rgba = 15,
-    pixelformat_compressed_dxt3_rgba = 16,
-    pixelformat_compressed_dxt5_rgba = 17,
-    pixelformat_compressed_etc1_rgb = 18,
-    pixelformat_compressed_etc2_rgb = 19,
-    pixelformat_compressed_etc2_eac_rgba = 20,
-    pixelformat_compressed_pvrt_rgb = 21,
-    pixelformat_compressed_pvrt_rgba = 22,
-    pixelformat_compressed_astc_4x4_rgba = 23,
-    pixelformat_compressed_astc_8x8_rgba = 24,
+    uncompressed_grayscale = 1,
+    uncompressed_gray_alpha = 2,
+    uncompressed_r5g6b5 = 3,
+    uncompressed_r8g8b8 = 4,
+    uncompressed_r5g5b5a1 = 5,
+    uncompressed_r4g4b4a4 = 6,
+    uncompressed_r8g8b8a8 = 7,
+    uncompressed_r32 = 8,
+    uncompressed_r32g32b32 = 9,
+    uncompressed_r32g32b32a32 = 10,
+    uncompressed_r16 = 11,
+    uncompressed_r16g16b16 = 12,
+    uncompressed_r16g16b16a16 = 13,
+    compressed_dxt1_rgb = 14,
+    compressed_dxt1_rgba = 15,
+    compressed_dxt3_rgba = 16,
+    compressed_dxt5_rgba = 17,
+    compressed_etc1_rgb = 18,
+    compressed_etc2_rgb = 19,
+    compressed_etc2_eac_rgba = 20,
+    compressed_pvrt_rgb = 21,
+    compressed_pvrt_rgba = 22,
+    compressed_astc_4x4_rgba = 23,
+    compressed_astc_8x8_rgba = 24,
 };
 
 pub const TextureFilter = enum(c_int) {
-    texture_filter_point = 0,
-    texture_filter_bilinear = 1,
-    texture_filter_trilinear = 2,
-    texture_filter_anisotropic_4x = 3,
-    texture_filter_anisotropic_8x = 4,
-    texture_filter_anisotropic_16x = 5,
+    point = 0,
+    bilinear = 1,
+    trilinear = 2,
+    anisotropic_4x = 3,
+    anisotropic_8x = 4,
+    anisotropic_16x = 5,
 };
 
 pub const TextureWrap = enum(c_int) {
-    texture_wrap_repeat = 0,
-    texture_wrap_clamp = 1,
-    texture_wrap_mirror_repeat = 2,
-    texture_wrap_mirror_clamp = 3,
+    repeat = 0,
+    clamp = 1,
+    mirror_repeat = 2,
+    mirror_clamp = 3,
 };
 
 pub const CubemapLayout = enum(c_int) {
-    cubemap_layout_auto_detect = 0,
-    cubemap_layout_line_vertical = 1,
-    cubemap_layout_line_horizontal = 2,
-    cubemap_layout_cross_three_by_four = 3,
-    cubemap_layout_cross_four_by_three = 4,
-    cubemap_layout_panorama = 5,
+    auto_detect = 0,
+    line_vertical = 1,
+    line_horizontal = 2,
+    cross_three_by_four = 3,
+    cross_four_by_three = 4,
 };
 
 pub const FontType = enum(c_int) {
-    font_default = 0,
-    font_bitmap = 1,
-    font_sdf = 2,
+    default = 0,
+    bitmap = 1,
+    sdf = 2,
 };
 
 pub const BlendMode = enum(c_int) {
-    blend_alpha = 0,
-    blend_additive = 1,
-    blend_multiplied = 2,
-    blend_add_colors = 3,
-    blend_subtract_colors = 4,
-    blend_alpha_premultiply = 5,
-    blend_custom = 6,
-    blend_custom_separate = 7,
+    alpha = 0,
+    additive = 1,
+    multiplied = 2,
+    add_colors = 3,
+    subtract_colors = 4,
+    alpha_premultiply = 5,
+    custom = 6,
+    custom_separate = 7,
 };
 
 pub const Gesture = enum(c_int) {
-    gesture_none = 0,
-    gesture_tap = 1,
-    gesture_doubletap = 2,
-    gesture_hold = 4,
-    gesture_drag = 8,
-    gesture_swipe_right = 16,
-    gesture_swipe_left = 32,
-    gesture_swipe_up = 64,
-    gesture_swipe_down = 128,
-    gesture_pinch_in = 256,
-    gesture_pinch_out = 512,
+    none = 0,
+    tap = 1,
+    doubletap = 2,
+    hold = 4,
+    drag = 8,
+    swipe_right = 16,
+    swipe_left = 32,
+    swipe_up = 64,
+    swipe_down = 128,
+    pinch_in = 256,
+    pinch_out = 512,
 };
 
 pub const CameraMode = enum(c_int) {
-    camera_custom = 0,
-    camera_free = 1,
-    camera_orbital = 2,
-    camera_first_person = 3,
-    camera_third_person = 4,
+    custom = 0,
+    free = 1,
+    orbital = 2,
+    first_person = 3,
+    third_person = 4,
 };
 
 pub const CameraProjection = enum(c_int) {
-    camera_perspective = 0,
-    camera_orthographic = 1,
+    perspective = 0,
+    orthographic = 1,
 };
 
 pub const NPatchType = enum(c_int) {
-    npatch_nine_patch = 0,
-    npatch_three_patch_vertical = 1,
-    npatch_three_patch_horizontal = 2,
+    nine_patch = 0,
+    three_patch_vertical = 1,
+    three_patch_horizontal = 2,
 };
 
 // pub const TraceLogCallback = ?fn (c_int, [*c]const u8, [*c]struct___va_list_tag) callconv(.C) void;
@@ -1963,16 +1975,16 @@ pub const AudioCallback = ?*const fn (?*anyopaque, c_uint) callconv(.C) void;
 pub const RAYLIB_VERSION_MAJOR = @as(i32, 5);
 pub const RAYLIB_VERSION_MINOR = @as(i32, 5);
 pub const RAYLIB_VERSION_PATCH = @as(i32, 0);
-pub const RAYLIB_VERSION = "5.5-dev";
+pub const RAYLIB_VERSION = "5.5";
 
 pub const MAX_TOUCH_POINTS = 10;
 pub const MAX_MATERIAL_MAPS = 12;
 pub const MAX_SHADER_LOCATIONS = 32;
 
-pub const MATERIAL_MAP_DIFFUSE = MaterialMapIndex.material_map_albedo;
-pub const MATERIAL_MAP_SPECULAR = MaterialMapIndex.material_map_metalness;
-pub const SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.shader_loc_map_albedo;
-pub const SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.shader_loc_map_metalness;
+pub const MATERIAL_MAP_DIFFUSE = MaterialMapIndex.albedo;
+pub const MATERIAL_MAP_SPECULAR = MaterialMapIndex.metalness;
+pub const SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.map_albedo;
+pub const SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.map_metalness;
 
 /// Set icon for window (multiple images, RGBA 32bit, only PLATFORM_DESKTOP)
 pub fn setWindowIcons(images: []Image) void {
@@ -1980,7 +1992,7 @@ pub fn setWindowIcons(images: []Image) void {
 }
 
 /// Load shader from files and bind default locations
-pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) Shader {
+pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) RaylibError!Shader {
     var vsFileNameFinal = @as([*c]const u8, 0);
     var fsFileNameFinal = @as([*c]const u8, 0);
     if (vsFileName) |vsFileNameSure| {
@@ -1989,11 +2001,13 @@ pub fn loadShader(vsFileName: ?[*:0]const u8, fsFileName: ?[*:0]const u8) Shader
     if (fsFileName) |fsFileNameSure| {
         fsFileNameFinal = @as([*c]const u8, @ptrCast(fsFileNameSure));
     }
-    return cdef.LoadShader(vsFileNameFinal, fsFileNameFinal);
+    const shader = cdef.LoadShader(vsFileNameFinal, fsFileNameFinal);
+    const isValid = cdef.IsShaderValid(shader);
+    return if (isValid) shader else RaylibError.LoadShader;
 }
 
 /// Load shader from code strings and bind default locations
-pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) Shader {
+pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) RaylibError!Shader {
     var vsCodeFinal = @as([*c]const u8, 0);
     var fsCodeFinal = @as([*c]const u8, 0);
     if (vsCode) |vsCodeSure| {
@@ -2002,7 +2016,9 @@ pub fn loadShaderFromMemory(vsCode: ?[*:0]const u8, fsCode: ?[*:0]const u8) Shad
     if (fsCode) |fsCodeSure| {
         fsCodeFinal = @as([*c]const u8, @ptrCast(fsCodeSure));
     }
-    return cdef.LoadShaderFromMemory(vsCodeFinal, fsCodeFinal);
+    const shader = cdef.LoadShaderFromMemory(vsCodeFinal, fsCodeFinal);
+    const isValid = cdef.IsShaderValid(shader);
+    return if (isValid) shader else RaylibError.LoadShader;
 }
 
 /// Load file data as byte array (read)
@@ -2064,13 +2080,82 @@ pub fn decodeDataBase64(data: []const u8) []u8 {
     return res;
 }
 
-pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) Image {
-    return cdef.LoadImageAnimFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)), @as([*c]c_int, @ptrCast(frames)));
+pub fn computeCRC32(data: []u8) u32 {
+    return cdef.ComputeCRC32(@as([*c]u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+}
+
+pub fn computeMD5(data: []u8) [4]u32 {
+    const res: [*]c_uint = cdef.ComputeMD5(@as([*c]u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+    return res[0..4].*;
+}
+
+pub fn computeSHA1(data: []u8) [5]u32 {
+    const res: [*]c_uint = cdef.ComputeSHA1(@as([*c]u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+    return res[0..5].*;
+}
+
+/// Load image from file into CPU memory (RAM)
+pub fn loadImage(fileName: [*:0]const u8) RaylibError!Image {
+    const image = cdef.LoadImage(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from RAW file data
+pub fn loadImageRaw(fileName: [*:0]const u8, width: i32, height: i32, format: PixelFormat, headerSize: i32) RaylibError!Image {
+    const image = cdef.LoadImageRaw(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, width), @as(c_int, height), format, @as(c_int, headerSize));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image sequence from file (frames appended to image.data)
+pub fn loadImageAnim(fileName: [*:0]const u8, frames: *i32) RaylibError!Image {
+    const image = cdef.LoadImageAnim(@as([*c]const u8, @ptrCast(fileName)), @as([*c]c_int, @ptrCast(frames)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from GPU texture data
+pub fn loadImageFromTexture(texture: Texture2D) RaylibError!Image {
+    const image = cdef.LoadImageFromTexture(texture);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Load image from screen buffer and (screenshot)
+pub fn loadImageFromScreen() RaylibError!Image {
+    const image = cdef.LoadImageFromScreen();
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+pub fn loadImageAnimFromMemory(fileType: [*:0]const u8, fileData: []const u8, frames: *i32) RaylibError!Image {
+    const image = cdef.LoadImageAnimFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)), @as([*c]c_int, @ptrCast(frames)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Load image from memory buffer, fileType refers to extension: i.e. '.png'
-pub fn loadImageFromMemory(fileType: [*:0]const u8, fileData: []const u8) Image {
-    return cdef.LoadImageFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+pub fn loadImageFromMemory(fileType: [*:0]const u8, fileData: []const u8) RaylibError!Image {
+    const image = cdef.LoadImageFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Create an image from text (default font)
+pub fn imageText(text: [*:0]const u8, fontSize: i32, color: Color) RaylibError!Image {
+    // TODO: ImageText requires SUPPORT_MODULE_RTEXT. Error out if not loaded.
+    const image = cdef.ImageText(@as([*c]const u8, @ptrCast(text)), @as(c_int, fontSize), color);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
+}
+
+/// Create an image from text (custom sprite font)
+pub fn imageTextEx(font: Font, text: [*:0]const u8, fontSize: f32, spacing: f32, tint: Color) RaylibError!Image {
+    // TODO: ImageTextEx requires SUPPORT_MODULE_RTEXT. Error out if not loaded.
+    const image = cdef.ImageTextEx(font, @as([*c]const u8, @ptrCast(text)), fontSize, spacing, tint);
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Load color data from image as a Color array (RGBA - 32bit)
@@ -2098,19 +2183,64 @@ pub fn loadImagePalette(image: Image, maxPaletteSize: i32) RaylibError![]Color {
     return res;
 }
 
+/// Load texture from file into GPU memory (VRAM)
+pub fn loadTexture(fileName: [*:0]const u8) RaylibError!Texture2D {
+    const texture = cdef.LoadTexture(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load texture from image data
+pub fn loadTextureFromImage(image: Image) RaylibError!Texture2D {
+    const texture = cdef.LoadTextureFromImage(image);
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load cubemap from image, multiple image cubemap layouts supported
+pub fn loadTextureCubemap(image: Image, layout: CubemapLayout) RaylibError!TextureCubemap {
+    const texture = cdef.LoadTextureCubemap(image, layout);
+    const isValid = cdef.IsTextureValid(texture);
+    return if (isValid) texture else RaylibError.LoadTexture;
+}
+
+/// Load texture for rendering (framebuffer)
+pub fn loadRenderTexture(width: i32, height: i32) RaylibError!RenderTexture2D {
+    const render_texture = cdef.LoadRenderTexture(@as(c_int, width), @as(c_int, height));
+    const isValid = cdef.IsRenderTextureValid(render_texture);
+    return if (isValid) render_texture else RaylibError.LoadRenderTexture;
+}
+
+/// Get the default Font
+pub fn getFontDefault() RaylibError!Font {
+    // TODO: GetFontDefault requires SUPPORT_DEFAULT_FONT. Error out if unset.
+    const font = cdef.GetFontDefault();
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
+/// Load font from file into GPU memory (VRAM)
+pub fn loadFont(fileName: [*:0]const u8) RaylibError!Font {
+    const font = cdef.LoadFont(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
 /// Load font from file with extended parameters, use null for fontChars to load the default character set
-pub fn loadFontEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+pub fn loadFontEx(fileName: [*:0]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
     var fontCharsFinal = @as([*c]c_int, 0);
     var fontCharsLen: c_int = @as(c_int, 0);
     if (fontChars) |fontCharsSure| {
         fontCharsFinal = @as([*c]c_int, @ptrCast(fontCharsSure));
         fontCharsLen = @as(i32, @intCast(fontCharsSure.len));
     }
-    return cdef.LoadFontEx(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, fontSize), fontCharsFinal, fontCharsLen);
+    const font = cdef.LoadFontEx(@as([*c]const u8, @ptrCast(fileName)), @as(c_int, fontSize), fontCharsFinal, fontCharsLen);
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
 }
 
 /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
-pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) Font {
+pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSize: i32, fontChars: ?[]i32) RaylibError!Font {
     var fileDataFinal = @as([*c]const u8, 0);
     var fileDataLen: i32 = 0;
     if (fileData) |fileDataSure| {
@@ -2118,7 +2248,16 @@ pub fn loadFontFromMemory(fileType: [*:0]const u8, fileData: ?[]const u8, fontSi
         fileDataLen = @as(i32, @intCast(fileDataSure.len));
     }
     const codepointCount: c_int = if (fontChars) |fontCharsSure| @intCast(fontCharsSure.len) else 0;
-    return cdef.LoadFontFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileDataFinal)), @as(c_int, @intCast(fileDataLen)), @as(c_int, fontSize), @as([*c]c_int, @ptrCast(fontChars)), codepointCount);
+    const font = cdef.LoadFontFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileDataFinal)), @as(c_int, @intCast(fileDataLen)), @as(c_int, fontSize), @as([*c]c_int, @ptrCast(fontChars)), codepointCount);
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
+}
+
+/// Load font from Image (XNA style)
+pub fn loadFontFromImage(image: Image, key: Color, firstChar: i32) RaylibError!Font {
+    const font = cdef.LoadFontFromImage(image, key, @as(c_int, firstChar));
+    const isValid = cdef.IsFontValid(font);
+    return if (isValid) font else RaylibError.LoadFont;
 }
 
 /// Load font data for further use
@@ -2167,6 +2306,24 @@ pub fn textFormat(text: [*:0]const u8, args: anytype) [*:0]const u8 {
     return std.mem.span(@call(.auto, cdef.TextFormat, .{@as([*c]const u8, @ptrCast(text))} ++ args));
 }
 
+/// Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...)
+pub fn traceLog(logLevel: TraceLogLevel, text: [*:0]const u8, args: anytype) void {
+    comptime {
+        const info = @typeInfo(@TypeOf(args));
+        switch (info) {
+            .Struct => {
+                if (!info.Struct.is_tuple)
+                    @compileError("Args should be in a tuple (call this function like traceLog(.{arg1, arg2, ...});)!");
+            },
+            else => {
+                @compileError("Args should be in a tuple (call this function like traceLog(.{arg1, arg2, ...});)!");
+            },
+        }
+    }
+
+    @call(.auto, cdef.TraceLog, .{ logLevel, @as([*c]const u8, @ptrCast(text)) } ++ args);
+}
+
 /// Split text into multiple strings
 pub fn textSplit(text: [*:0]const u8, delimiter: u8) [][*:0]const u8 {
     var count: i32 = 0;
@@ -2181,6 +2338,13 @@ pub fn drawMeshInstanced(mesh: Mesh, material: Material, transforms: []const Mat
     cdef.DrawMeshInstanced(mesh, material, @as([*c]const Matrix, @ptrCast(transforms)), @as(c_int, @intCast(transforms.len)));
 }
 
+/// Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)
+pub fn loadMaterialDefault() RaylibError!Material {
+    const material = cdef.LoadMaterialDefault();
+    const isValid = cdef.IsMaterialValid(material);
+    return if (isValid) material else RaylibError.LoadMaterial;
+}
+
 /// Load materials from model file
 pub fn loadMaterials(fileName: [*:0]const u8) RaylibError![]Material {
     var materialCount: i32 = 0;
@@ -2191,7 +2355,27 @@ pub fn loadMaterials(fileName: [*:0]const u8) RaylibError![]Material {
 
     res.ptr = @as([*]Material, @ptrCast(ptr));
     res.len = @as(usize, @intCast(materialCount));
+
+    for (res) |r| {
+        if (!cdef.IsMaterialValid(r))
+            return RaylibError.LoadMaterial;
+    }
+
     return res;
+}
+
+/// Load model from files (meshes and materials)
+pub fn loadModel(fileName: [*:0]const u8) RaylibError!Model {
+    const model = cdef.LoadModel(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsModelValid(model);
+    return if (isValid) model else RaylibError.LoadModel;
+}
+
+/// Load model from generated mesh (default material)
+pub fn loadModelFromMesh(mesh: Mesh) RaylibError!Model {
+    const model = cdef.LoadModelFromMesh(mesh);
+    const isValid = cdef.IsModelValid(model);
+    return if (isValid) model else RaylibError.LoadModel;
 }
 
 /// Load model animations from file
@@ -2212,9 +2396,25 @@ pub fn unloadModelAnimations(animations: []ModelAnimation) void {
     cdef.UnloadModelAnimations(@as([*c]ModelAnimation, @ptrCast(animations)), @as(c_int, @intCast(animations.len)));
 }
 
+/// Load sound from file
+pub fn loadSound(fileName: [*:0]const u8) RaylibError!Sound {
+    const sound = cdef.LoadSound(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsSoundValid(sound);
+    return if (isValid) sound else RaylibError.LoadSound;
+}
+
+/// Load wave data from file
+pub fn loadWave(fileName: [*:0]const u8) RaylibError!Wave {
+    const wave = cdef.LoadWave(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsWaveValid(wave);
+    return if (isValid) wave else RaylibError.LoadWave;
+}
+
 /// Load wave from memory buffer, fileType refers to extension: i.e. '.wav'
-pub fn loadWaveFromMemory(fileType: [*:0]const u8, fileData: []const u8) Wave {
-    return cdef.LoadWaveFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+pub fn loadWaveFromMemory(fileType: [*:0]const u8, fileData: []const u8) RaylibError!Wave {
+    const wave = cdef.LoadWaveFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(fileData)), @as(c_int, @intCast(fileData.len)));
+    const isValid = cdef.IsWaveValid(wave);
+    return if (isValid) wave else RaylibError.LoadWave;
 }
 
 /// Load samples data from wave as a 32bit float data array
@@ -2225,9 +2425,25 @@ pub fn loadWaveSamples(wave: Wave) []f32 {
     return res;
 }
 
+/// Load music stream from file
+pub fn loadMusicStream(fileName: [*:0]const u8) RaylibError!Music {
+    const music = cdef.LoadMusicStream(@as([*c]const u8, @ptrCast(fileName)));
+    const isValid = cdef.IsMusicValid(music);
+    return if (isValid) music else RaylibError.LoadMusic;
+}
+
 /// Load music stream from data
-pub fn loadMusicStreamFromMemory(fileType: [*:0]const u8, data: []const u8) Music {
-    return cdef.LoadMusicStreamFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+pub fn loadMusicStreamFromMemory(fileType: [*:0]const u8, data: []const u8) RaylibError!Music {
+    const music = cdef.LoadMusicStreamFromMemory(@as([*c]const u8, @ptrCast(fileType)), @as([*c]const u8, @ptrCast(data)), @as(c_int, @intCast(data.len)));
+    const isValid = cdef.IsMusicValid(music);
+    return if (isValid) music else RaylibError.LoadMusic;
+}
+
+/// Load audio stream (to stream raw audio pcm data)
+pub fn loadAudioStream(sampleRate: u32, sampleSize: u32, channels: u32) RaylibError!AudioStream {
+    const audio_stream = cdef.LoadAudioStream(@as(c_uint, sampleRate), @as(c_uint, sampleSize), @as(c_uint, channels));
+    const isValid = cdef.IsAudioStreamValid(audio_stream);
+    return if (isValid) audio_stream else RaylibError.LoadAudioStream;
 }
 
 /// Draw lines sequence (using gl lines)
@@ -2280,8 +2496,10 @@ pub fn imageKernelConvolution(image: *Image, kernel: []const f32) void {
 }
 
 /// Generate image font atlas using chars info
-pub fn genImageFontAtlas(chars: []const GlyphInfo, recs: [][]Rectangle, fontSize: i32, padding: i32, packMethod: i32) Image {
-    return cdef.GenImageFontAtlas(@as([*c]const GlyphInfo, @ptrCast(chars)), @as([*c][*c]Rectangle, @ptrCast(recs)), @as(c_int, @intCast(recs.len)), @as(c_int, fontSize), @as(c_int, padding), @as(c_int, packMethod));
+pub fn genImageFontAtlas(chars: []const GlyphInfo, recs: [][]Rectangle, fontSize: i32, padding: i32, packMethod: i32) RaylibError!Image {
+    const image = cdef.GenImageFontAtlas(@as([*c]const GlyphInfo, @ptrCast(chars)), @as([*c][*c]Rectangle, @ptrCast(recs)), @as(c_int, @intCast(recs.len)), @as(c_int, fontSize), @as(c_int, padding), @as(c_int, packMethod));
+    const isValid = cdef.IsImageValid(image);
+    return if (isValid) image else RaylibError.LoadImage;
 }
 
 /// Unload font chars info data (RAM)

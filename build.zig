@@ -28,10 +28,7 @@ pub const OpenglVersion = enum {
     gles_3,
 };
 
-pub const LinuxDisplayBackend = enum {
-    X11,
-    Wayland,
-};
+pub const LinuxDisplayBackend = enum { X11, Wayland, Both };
 
 pub const PlatformBackend = enum {
     glfw,
@@ -52,8 +49,8 @@ fn link(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     options: Options,
-) void {
-    const lib = getRaylib(b, target, optimize, options);
+) !void {
+    const lib = try getRaylib(b, target, optimize, options);
 
     const target_os = exe.rootModuleTarget().os.tag;
     switch (target_os) {
@@ -98,7 +95,7 @@ fn link(
 }
 
 var _raylib_lib_cache: ?*std.Build.Step.Compile = null;
-fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, options: Options) *std.Build.Step.Compile {
+fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, options: Options) !*std.Build.Step.Compile {
     if (_raylib_lib_cache) |lib| return lib else {
         const raylib = b.dependency("raylib", .{
             .target = target,
@@ -125,15 +122,29 @@ fn getRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
         lib.step.dependOn(&gen_step.step);
 
         const raygui_c_path = gen_step.add("raygui.c", "#define RAYGUI_IMPLEMENTATION\n#include \"raygui.h\"\n");
+
+        var raylib_flags_arr = std.ArrayList([]const u8).init(b.allocator);
+        defer raylib_flags_arr.deinit();
+
+        try raylib_flags_arr.appendSlice(&[_][]const u8{
+            "-std=gnu99",
+            "-D_GNU_SOURCE",
+            "-DGL_SILENCE_DEPRECATION=199309L",
+            "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
+        });
+
+        if (options.shared) {
+            try raylib_flags_arr.appendSlice(&[_][]const u8{
+                "-fPIC",
+                "-DBUILD_LIBTYPE_SHARED",
+            });
+        }
+
         lib.addCSourceFile(.{
             .file = raygui_c_path,
-            .flags = &[_][]const u8{
-                "-std=gnu99",
-                "-D_GNU_SOURCE",
-                "-DGL_SILENCE_DEPRECATION=199309L",
-                "-fno-sanitize=undefined", // https://github.com/raysan5/raylib/issues/3674
-            },
+            .flags = raylib_flags_arr.items,
         });
+
         lib.addIncludePath(raylib.path("src"));
         lib.addIncludePath(raygui_dep.path("src"));
 
@@ -232,11 +243,20 @@ pub fn build(b: *std.Build) !void {
             .desc = "Simple first person demo",
         },
         .{
+            .name = "3d_camera_free",
+            .path = "examples/core/3d_camera_free.zig",
+            .desc = "Shows basic 3d camera initialization",
+        },
+        .{
             .name = "2d_camera_mouse_zoom",
             .path = "examples/core/2d_camera_mouse_zoom.zig",
             .desc = "Shows mouse zoom demo",
         },
-
+        .{
+            .name = "3d_picking",
+            .path = "examples/core/3d_picking.zig",
+            .desc = "Shows picking in 3d mode",
+        },
         .{
             .name = "window_flags",
             .path = "examples/core/window_flags.zig",
@@ -253,6 +273,61 @@ pub fn build(b: *std.Build) !void {
             .desc = "Renders the raylib-zig logo",
         },
         .{
+            .name = "logo_raylib_anim",
+            .path = "examples/shapes/logo_raylib_anim.zig",
+            .desc = "Animates the raylib logo",
+        },
+        .{
+            .name = "basic_shapes",
+            .path = "examples/shapes/basic_shapes.zig",
+            .desc = "Renders various shapes",
+        },
+        .{
+            .name = "bouncing_ball",
+            .path = "examples/shapes/bouncing_ball.zig",
+            .desc = "Bouncing ball animation with collision detection",
+        },
+        .{
+            .name = "collision_area",
+            .path = "examples/shapes/collision_area.zig",
+            .desc = "Demonstrates collision detection",
+        },
+        .{
+            .name = "colors_palette",
+            .path = "examples/shapes/colors_palette.zig",
+            .desc = "Renders an interactive color palette",
+        },
+        .{
+            .name = "draw_circle_sector",
+            .path = "examples/shapes/draw_circle_sector.zig",
+            .desc = "Dynamically renders a circle sector using raygui",
+        },
+        .{
+            .name = "draw_rectangle_rounded",
+            .path = "examples/shapes/draw_rectangle_rounded.zig",
+            .desc = "Dynamically renders a rounded rectangle using raygui",
+        },
+        .{
+            .name = "draw_ring",
+            .path = "examples/shapes/draw_ring.zig",
+            .desc = "Dynaically renders a ring using raygui",
+        },
+        .{
+            .name = "following_eyes",
+            .path = "examples/shapes/following_eyes.zig",
+            .desc = "Renders eyes that follow mouse movement",
+        },
+        .{
+            .name = "lines_bezier",
+            .path = "examples/shapes/lines_bezier.zig",
+            .desc = "Renders an interactive line bezier",
+        },
+        .{
+            .name = "rectangle_scaling",
+            .path = "examples/shapes/rectangle_scaling.zig",
+            .desc = "Renders a resizable rectangle",
+        },
+        .{
             .name = "sprite_anim",
             .path = "examples/textures/sprite_anim.zig",
             .desc = "Animate a sprite",
@@ -267,6 +342,12 @@ pub fn build(b: *std.Build) !void {
             .path = "examples/text/text_format_text.zig",
             .desc = "Renders variables as text",
         },
+        .{
+            .name = "textures_image_loading",
+            .path = "examples/textures/textures_image_loading.zig",
+            .desc = "Image loading and texture creation",
+        },
+
         // .{
         //     .name = "models_loading",
         //     .path = "examples/models/models_loading.zig",
@@ -287,6 +368,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    raylib_test.linkLibC();
 
     const raygui_test = b.addTest(.{
         .root_source_file = b.path("lib/raygui.zig"),
@@ -294,6 +376,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     raygui_test.root_module.addImport("raylib-zig", raylib);
+    raygui_test.linkLibC();
 
     const test_step = b.step("test", "Check for library compilation errors");
     test_step.dependOn(&raylib_test.step);
@@ -303,10 +386,10 @@ pub fn build(b: *std.Build) !void {
 
     for (examples) |ex| {
         if (target.query.os_tag == .emscripten) {
-            const exe_lib = emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
+            const exe_lib = try emcc.compileForEmscripten(b, ex.name, ex.path, target, optimize);
             exe_lib.root_module.addImport("raylib", raylib);
             exe_lib.root_module.addImport("raygui", raygui);
-            const raylib_lib = getRaylib(b, target, optimize, options);
+            const raylib_lib = try getRaylib(b, target, optimize, options);
 
             // Note that raylib itself isn't actually added to the exe_lib
             // output file, so it also needs to be linked with emscripten.
@@ -328,7 +411,7 @@ pub fn build(b: *std.Build) !void {
                 .optimize = optimize,
                 .target = target,
             });
-            this.link(b, exe, target, optimize, options);
+            try this.link(b, exe, target, optimize, options);
             exe.root_module.addImport("raylib", raylib);
             exe.root_module.addImport("raygui", raygui);
 

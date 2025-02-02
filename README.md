@@ -4,7 +4,7 @@
 
 Manually tweaked, auto-generated [raylib](https://github.com/raysan5/raylib) bindings for zig.
 
-Bindings tested on raylib version 5.5-dev and Zig 0.13.0
+Bindings tested on raylib version 5.5 and Zig 0.13.0
 
 Thanks to all the [contributors](https://github.com/Not-Nik/raylib-zig/graphs/contributors) for their help with this
 binding.
@@ -64,7 +64,7 @@ want to run an example, say `basic_window` run `zig build basic_window`
 Download and add raylib-zig as a dependency by running the following command in your project root:
 
 ```
-zig fetch --save https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz
+zig fetch --save git+https://github.com/Not-Nik/raylib-zig#devel
 ```
 
 Then add raylib-zig as a dependency and import its modules and artifact in your `build.zig`:

@@ -15,10 +15,10 @@ pub fn main() anyerror!void {
     rl.initWindow(screenWidth, screenHeight, "raylib [shaders] example - Apply an outline to a texture");
     defer rl.closeWindow(); // Close window and OpenGL context
 
-    const texture: rl.Texture = rl.Texture.init("resources/textures/fudesumi.png");
+    const texture: rl.Texture = try rl.Texture.init("resources/textures/fudesumi.png");
     defer rl.unloadTexture(texture);
 
-    const shdrOutline: rl.Shader = rl.loadShader(null, "resources/shaders/glsl330/outline.fs");
+    const shdrOutline: rl.Shader = try rl.loadShader(null, "resources/shaders/glsl330/outline.fs");
     defer rl.unloadShader(shdrOutline);
 
     var outlineSize: f32 = 2.0;
@@ -38,19 +38,19 @@ pub fn main() anyerror!void {
         shdrOutline,
         outlineSizeLoc,
         &outlineSize,
-        rl.ShaderUniformDataType.shader_uniform_float,
+        .float,
     );
     rl.setShaderValue(
         shdrOutline,
         outlineColorLoc,
         &outlineColor,
-        rl.ShaderUniformDataType.shader_uniform_vec4,
+        .vec4,
     );
     rl.setShaderValue(
         shdrOutline,
         textureSizeLoc,
         &textureSize,
-        rl.ShaderUniformDataType.shader_uniform_vec2,
+        .vec2,
     );
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
@@ -67,7 +67,7 @@ pub fn main() anyerror!void {
             shdrOutline,
             outlineSizeLoc,
             &outlineSize,
-            rl.ShaderUniformDataType.shader_uniform_float,
+            .float,
         );
         //----------------------------------------------------------------------------------
 

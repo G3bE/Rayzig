@@ -3,13 +3,13 @@
     .version = "5.5.0",
     .dependencies = .{
         .raylib = .{
-            .url = "https://github.com/raysan5/raylib/archive/c4be01329493d0e772a04de08639b4da32905d2a.tar.gz",
-            .hash = "1220d1c8697d41a42d4eaaf3f8709865534d1f3d6ad63f8a27500fa881380651a1c5",
+            .url = "https://github.com/raysan5/raylib/archive/c1ab645ca298a2801097931d1079b10ff7eb9df8.tar.gz",
+            .hash = "1220d93782859726c2c46a05450615b7edfc82b7319daac50cbc7c3345d660b022d7",
         },
         .raygui = .{
             .url = "https://github.com/raysan5/raygui/archive/1e03efca48c50c5ea4b4a053d5bf04bad58d3e43.tar.gz",
             .hash = "122062b24f031e68f0d11c91dfc32aed5baf06caf26ed3c80ea1802f9e788ef1c358",
-        }
+        },
     },
     .minimum_zig_version = "0.13.0",
     .paths = .{

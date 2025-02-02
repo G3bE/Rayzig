@@ -18,7 +18,7 @@ pub fn main() anyerror!void {
         .target = rl.Vector3.init(0, 1.8, 0),
         .up = rl.Vector3.init(0, 1, 0),
         .fovy = 60,
-        .projection = rl.CameraProjection.camera_perspective,
+        .projection = .perspective,
     };
 
     var heights: [MAX_COLUMNS]f32 = undefined;
@@ -48,7 +48,7 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //----------------------------------------------------------------------------------
-        camera.update(rl.CameraMode.camera_first_person);
+        camera.update(.first_person);
         //----------------------------------------------------------------------------------
 
         // Draw

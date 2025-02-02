@@ -21,16 +21,16 @@ pub fn main() anyerror!void {
 
         // Update
         //----------------------------------------------------------------------------------
-        if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
+        if (rl.isKeyDown(.right)) {
             ballPosition.x += 2.0;
         }
-        if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
+        if (rl.isKeyDown(.left)) {
             ballPosition.x -= 2.0;
         }
-        if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
+        if (rl.isKeyDown(.up)) {
             ballPosition.y -= 2.0;
         }
-        if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
+        if (rl.isKeyDown(.down)) {
             ballPosition.y += 2.0;
         }
         //----------------------------------------------------------------------------------
