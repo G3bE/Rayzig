@@ -10,6 +10,7 @@ pkgs.mkShell {
 
   nativeBuildInputs = [
     pkgs.libGL
+    pkgs.alsa-lib
     pkgs.libxkbcommon
 
     # X11 dependencies
