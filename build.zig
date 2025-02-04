@@ -213,6 +213,11 @@ pub fn build(b: *std.Build) !void {
             .desc = "Load and play a song",
         },
         .{
+            .name = "module_playing",
+            .path = "examples/audio/module_playing.zig",
+            .desc = "Module playing (streaming)",
+        },
+        .{
             .name = "basic_screen_manager",
             .path = "examples/core/basic_screen_manager.zig",
             .desc = "Illustrates simple screen manager based on a state machine",
