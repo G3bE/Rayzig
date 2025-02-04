@@ -203,6 +203,21 @@ pub fn build(b: *std.Build) !void {
             .desc = "Plays a sine wave",
         },
         .{
+            .name = "music_stream",
+            .path = "examples/audio/music_stream.zig",
+            .desc = "Use music stream to play an audio file",
+        },
+        .{
+            .name = "sound_loading",
+            .path = "examples/audio/sound_loading.zig",
+            .desc = "Load and play a song",
+        },
+        .{
+            .name = "module_playing",
+            .path = "examples/audio/module_playing.zig",
+            .desc = "Module playing (streaming)",
+        },
+        .{
             .name = "basic_screen_manager",
             .path = "examples/core/basic_screen_manager.zig",
             .desc = "Illustrates simple screen manager based on a state machine",
