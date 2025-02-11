@@ -358,11 +358,11 @@ pub fn build(b: *std.Build) !void {
             .desc = "Image loading and texture creation",
         },
 
-        // .{
-        //     .name = "models_loading",
-        //     .path = "examples/models/models_loading.zig",
-        //     .desc = "Loads a model and renders it",
-        // },
+        .{
+            .name = "models_heightmap",
+            .path = "examples/models/models_heightmap.zig",
+            .desc = "Heightmap loading and drawing",
+        },
         // .{
         //     .name = "shaders_basic_lighting",
         //     .path = "examples/shaders/shaders_basic_lighting.zig",
